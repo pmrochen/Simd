@@ -298,6 +298,11 @@ inline __m128 set2(float x, float y)
 	return _mm_unpacklo_ps(_mm_set_ss(x), _mm_set_ss(y)); 
 }
 
+inline __m128 set2(__m128 x, __m128 y)
+{
+	return _mm_unpacklo_ps(x, y);
+}
+
 inline __m128 set3(float s)
 {
 	__m128 t = _mm_set_ss(s);
@@ -307,6 +312,11 @@ inline __m128 set3(float s)
 inline __m128 set3(float x, float y, float z)
 {
 	return _mm_movelh_ps(_mm_unpacklo_ps(_mm_set_ss(x), _mm_set_ss(y)), _mm_set_ss(z));
+}
+
+inline __m128 set3(__m128 x, __m128 y, __m128 z)
+{
+	return _mm_movelh_ps(_mm_unpacklo_ps(x, y), z);
 }
 
 inline __m128 set4(float s)
@@ -328,6 +338,11 @@ inline __m128 set4(float x, float y, float z, float w)
 //{
 //	return _mm_castsi128_ps(_mm_setr_epi32(-(int)x, -(int)y, -(int)z, -(int)w));
 //}
+
+inline __m128 set4(__m128 x, __m128 y, __m128 z, __m128 w)
+{
+	return _mm_movelh_ps(_mm_unpacklo_ps(x, y), _mm_unpacklo_ps(z, w));
+}
 
 inline __m128 load2(const float* v)
 {
