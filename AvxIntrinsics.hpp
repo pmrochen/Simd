@@ -15,10 +15,10 @@
 
 #include <immintrin.h>
 
-namespace core::simd::avx {
+namespace simd::avx {
 
 // #TODO
 
-} // namespace core::simd::avx
+} // namespace simd::avx
 
 #endif /* SIMD_AVX */

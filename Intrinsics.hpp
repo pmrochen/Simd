@@ -18,7 +18,7 @@
 #define SIMD_HAS_FLOAT4 0
 #endif
 
-namespace core::simd {
+namespace simd {
 
 #ifdef SIMD_SSE
 using namespace sse;
@@ -67,4 +67,4 @@ template<typename T> inline T wzyx(T v) { return swizzle<W, Z, Y, X>(v); }
 
 #endif
 
-} // namespace core::simd
+} // namespace simd
