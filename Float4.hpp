@@ -5,11 +5,15 @@
 
 #pragma once
 
+#include <type_traits>
+#include <functional>
+#include <tuple>
+#include <cstddef>
 #include "Intrinsics.hpp"
 
 #if SIMD_HAS_FLOAT4
 
-namespace core::simd {
+namespace simd {
 
 struct Float4
 {
@@ -47,6 +51,9 @@ struct Float4
 	Bool4 operator>=(const Float4& v) const noexcept { return Bool4(greaterEqual(value, v)); }
 	Bool4 operator==(const Float4& v) const noexcept { return Bool4(equal(value, v)); }
 	Bool4 operator!=(const Float4& v) const noexcept { return Bool4(not4(equal(value, v))); }
+
+	//template<std::size_t I> float& get() noexcept; // #TODO
+	template<std::size_t I> float get() const noexcept { return extract<I>(value); }
 
 	float x() const noexcept { return extract<X>(value); }
 	float y() const noexcept { return extract<Y>(value); }
@@ -105,6 +112,54 @@ inline Float4 operator/(const Float4 v1, const Float4 v2) noexcept { return Floa
 inline Float4 operator/(float s, const Float4 v) noexcept { return Float4(div4(set4(s), v)); }
 inline Float4 operator/(const Float4 v, float s) noexcept { return Float4(div4(v, set4(s))); }
 
-} // namespace core::simd
+//template<std::size_t I> inline float& get(Float4& v) noexcept; // #TODO
+template<std::size_t I> inline float get(const Float4& v) noexcept { return extract<I>(v.value); }
+
+} // namespace simd
+
+namespace std {
+
+template<size_t I, typename T>
+struct tuple_element;
+
+template<size_t I>
+struct tuple_element<I, ::simd::Float4>
+{
+	using type = float;
+};
+
+template<typename T>
+struct tuple_size;
+
+template<>
+struct tuple_size<::simd::Float4> : integral_constant<size_t, 4>
+{
+};
+
+template<typename T>
+struct equal_to;
+
+template<>
+struct equal_to<::simd::Float4>
+{
+	bool operator()(const ::simd::Float4& v1, const ::simd::Float4& v2) const noexcept
+	{
+		return ::simd::all4(::simd::equal(v1.value, v2.value));
+	}
+};
+
+template<typename T>
+struct hash;
+
+template<>
+struct hash<::simd::Float4>
+{
+	size_t operator()(const ::simd::Float4& v) const noexcept
+	{
+		return ::simd::hash(v.value);
+	}
+};
+
+} // namespace std
 
 #endif /* SIMD_HAS_FLOAT4 */

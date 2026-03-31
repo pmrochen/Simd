@@ -35,6 +35,7 @@
 #endif
 
 #include <tuple>
+#include <cstddef>
 #include <cstdint>
 
 #define SIMD_HAS_FLOAT4 1
@@ -67,8 +68,7 @@ inline __m128 operator/(const __m128 v, float s) { return _mm_div_ps(v, _mm_set_
 
 #endif
 
-namespace core::simd::sse {
-
+namespace simd::sse {
 namespace bitops {
 
 #if defined(__clang__) || defined(__GNUC__)
@@ -882,6 +882,11 @@ inline __m128 abs4(__m128 v)
 	return _mm_andnot_ps(detail::SIGN4, v);
 }
 
+inline __m128 normalize(__m128 v) // -0 -> +0
+{
+	return _mm_add_ps(v, _mm_setzero_ps());
+}
+
 inline __m128 add4(__m128 v1, __m128 v2)
 {
 	return _mm_add_ps(v1, v2);
@@ -1076,6 +1081,16 @@ inline __m128 isInf(__m128 v)
 #endif
 }
 
-} // namespace core::simd::sse
+inline std::size_t hash(__m128 v)
+{
+	__m128i x = _mm_castps_si128(v);
+	__m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
+	x = _mm_xor_si128(x, y);
+	y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
+	x = _mm_xor_si128(x, y);
+	return static_cast<std::size_t>(_mm_cvtsi128_si64(x) ^ _mm_extract_epi64(x, 1));
+}
+
+} // namespace simd::sse
 
 #endif /* SIMD_SSE */
