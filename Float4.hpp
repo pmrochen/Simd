@@ -15,9 +15,9 @@
 
 namespace simd {
 
-struct Float4
+struct alignas(16) Float4
 {
-	struct Bool4
+	struct alignas(16) Bool4
 	{
 		Bool4() = default;
         explicit Bool4(bool s) noexcept { value = set4(s); }
