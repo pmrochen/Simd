@@ -25,18 +25,18 @@ target_include_directories(${SIMD_LIB_NAME} 	# to remove after moving header fil
 )
 
 set(SIMD_HEADERS
-	AvxIntrinsics.hpp
-	Float4.hpp
-	Functional.hpp
-	Intrinsics.hpp
-	Simd.hpp
-	SseIntrinsics.hpp
+	Include/Simd/AvxIntrinsics.hpp
+	Include/Simd/Float4.hpp
+	Include/Simd/Functional.hpp
+	Include/Simd/Intrinsics.hpp
+	Include/Simd/Simd.hpp
+	Include/Simd/SseIntrinsics.hpp
 )
 
 target_sources(${SIMD_LIB_NAME}
 	INTERFACE
     	FILE_SET HEADERS
-		#BASE_DIRS Include
+		BASE_DIRS Include
     	FILES
 			${SIMD_HEADERS}
 )
