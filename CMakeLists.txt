@@ -18,12 +18,6 @@ set(SIMD_LIB_NAME "Simd")
 
 add_library(${SIMD_LIB_NAME} INTERFACE)
 
-target_include_directories(${SIMD_LIB_NAME} 	# to remove after moving header files to Include folder
-	INTERFACE 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include>
-)
-
 set(SIMD_HEADERS
 	Include/Simd/AvxIntrinsics.hpp
 	Include/Simd/Float4.hpp
