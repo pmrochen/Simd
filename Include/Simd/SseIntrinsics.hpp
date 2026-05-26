@@ -40,6 +40,10 @@
 
 #define SIMD_HAS_FLOAT4 1
 
+#if (SIMD_SSE >= 2)
+#define SIMD_HAS_INT4 1
+#endif
+
 #if !defined(__clang__) && !defined(__GNUC__) && defined(_MSC_VER) && (!defined(_XM_SSE_INTRINSICS_) || defined(_XM_NO_XMVECTOR_OVERLOADS_))
 
 #ifndef _XM_NO_XMVECTOR_OVERLOADS_
@@ -125,6 +129,10 @@ const UInt32M128 COMPONENT_MASKS[] = { { { { 0xFFFFFFFF, 0x00000000, 0x00000000,
 } // namespace detail 
 
 using float4/*Float4*/ = __m128;
+
+#if (SIMD_SSE >= 2)
+using int4 = __m128i;
+#endif
 
 constexpr int X = 0;
 constexpr int Y = 1;
@@ -240,6 +248,7 @@ inline __m128 constant4i()
 	return u.xmm;
 }
 
+#if (SIMD_SSE >= 2)
 template<int S>
 inline __m128i constant4i()
 {
@@ -252,6 +261,7 @@ inline __m128i constant4i()
 	} u = { { S, S, S, S } };
 	return u.xmm;
 }
+#endif
 
 template <typename T, int X, int Y, int Z, int W>
 inline T constant4i();
@@ -269,6 +279,7 @@ inline __m128 constant4i()
 	return u.xmm;
 }
 
+#if (SIMD_SSE >= 2)
 template<int X, int Y, int Z, int W>
 inline __m128i constant4i()
 {
@@ -281,6 +292,7 @@ inline __m128i constant4i()
 	} u = { { X, Y, Z, W } };
 	return u.xmm;
 }
+#endif
 
 inline __m128 set1(float s)
 {
@@ -358,6 +370,13 @@ inline __m128 load4(const float* v)
 { 
 	return _mm_loadu_ps(v); 
 }
+
+#if (SIMD_SSE >= 2)
+inline __m128i load4(const int* v)
+{
+	return _mm_loadu_si128((const __m128i*)v);
+}
+#endif
 
 inline void store2(__m128 u, float* v) 
 { 
@@ -778,6 +797,13 @@ inline bool all4(__m128 b)
 	return ((_mm_movemask_ps(b) /*& 0xF*/) == 0xF);
 }
 
+#if (SIMD_SSE >= 2)
+inline bool all4(__m128i b)
+{
+	return ((_mm_movemask_ps(_mm_castsi128_ps(b)) /*& 0xF*/) == 0xF);
+}
+#endif
+
 inline bool any2(__m128 b)
 {
 	return (_mm_movemask_ps(b) & 3);
@@ -793,6 +819,13 @@ inline bool any4(__m128 b)
 	return (_mm_movemask_ps(b) /*& 0xF*/);
 }
 
+#if (SIMD_SSE >= 2)
+inline bool any4(__m128i b)
+{
+	return (_mm_movemask_ps(_mm_castsi128_ps(b)) /*& 0xF*/);
+}
+#endif
+
 inline int asIndex(__m128 b)
 {
 	return /*std::countr_zero*/bitops::ctz(_mm_movemask_ps(b));
@@ -802,6 +835,13 @@ inline __m128 equal(__m128 v1, __m128 v2)
 {
 	return _mm_cmpeq_ps(v1, v2);
 }
+
+#if (SIMD_SSE >= 2)
+inline __m128i equal(__m128i v1, __m128i v2)
+{
+	return _mm_cmpeq_epi32(v1, v2);
+}
+#endif
 
 inline __m128 lessThan(__m128 v1, __m128 v2)
 {
@@ -1083,13 +1123,28 @@ inline __m128 isInf(__m128 v)
 
 inline std::size_t hash(__m128 v)
 {
+#if (SIMD_SSE >= 2)
 	__m128i x = _mm_castps_si128(v);
 	__m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
 	x = _mm_xor_si128(x, y);
 	y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
 	x = _mm_xor_si128(x, y);
 	return static_cast<std::size_t>(_mm_cvtsi128_si64(x) ^ _mm_extract_epi64(x, 1));
+#else
+	#error // #TODO
+#endif
 }
+
+#if (SIMD_SSE >= 2)
+inline std::size_t hash(__m128i v)
+{
+	__m128i y = _mm_shuffle_epi32(v, _MM_SHUFFLE(2, 3, 0, 1));
+	__m128i x = _mm_xor_si128(v, y);
+	y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
+	x = _mm_xor_si128(x, y);
+	return static_cast<std::size_t>(_mm_cvtsi128_si64(x) ^ _mm_extract_epi64(x, 1));
+}
+#endif
 
 } // namespace simd::sse
 
