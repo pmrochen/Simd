@@ -17,6 +17,7 @@ project(Simd
 set(SIMD_LIB_NAME "Simd")
 
 add_library(${SIMD_LIB_NAME} INTERFACE)
+add_library(Core::${SIMD_LIB_NAME} ALIAS ${SIMD_LIB_NAME})
 
 set(SIMD_HEADERS
 	Include/Simd/AvxIntrinsics.hpp
