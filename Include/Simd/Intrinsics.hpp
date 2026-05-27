@@ -18,6 +18,10 @@
 #define SIMD_HAS_FLOAT4 0
 #endif
 
+#ifndef SIMD_HAS_INT4
+#define SIMD_HAS_INT4 0
+#endif
+
 namespace simd {
 
 #ifdef SIMD_SSE
@@ -64,6 +68,21 @@ template<typename T> inline T wxxx(T v) { return swizzle<W, X, X, X>(v); }
 template<typename T> inline T wyyy(T v) { return swizzle<W, Y, Y, Y>(v); }
 template<typename T> inline T wzzz(T v) { return swizzle<W, Z, Z, Z>(v); }
 template<typename T> inline T wzyx(T v) { return swizzle<W, Z, Y, X>(v); }
+
+template<typename T> inline T logicalNot(T v) { return not4(v); } // #TODO logicalNot4(v) -> not<4>(v)
+template<typename T> inline T logicalAnd(T v) { return and4(v); } // ...
+template<typename T> inline T logicalOr(T v) { return or4(v); }
+template<typename T> inline bool all2(T v) { return all<2>(v); }
+template<typename T> inline bool all3(T v) { return all<3>(v); }
+template<typename T> inline bool all4(T v) { return all<4>(v); }
+template<typename T> inline bool any2(T v) { return any<2>(v); }
+template<typename T> inline bool any3(T v) { return any<3>(v); }
+template<typename T> inline bool any4(T v) { return any<4>(v); }
+template<typename T> inline T negate(T v) { return neg4(v); } // #TODO neg4(v) -> negate<4>(v)
+template<typename T> inline T add(T v) { return add4(v); } // ...
+template<typename T> inline T subtract(T v) { return sub4(v); }
+template<typename T> inline T multiply(T v) { return mul4(v); }
+template<typename T> inline T divide(T v) { return div4(v); }
 
 #endif
 

@@ -41,31 +41,31 @@ struct alignas(sizeof(T)*N) Tuple
 	struct alignas(sizeof(T)*N) Bool
 	{
 		Bool() = default;
-        explicit Bool(bool s) noexcept { value = set4/*set<N>*/(s); } // #FIXME Support N != 4
-        Bool(bool x, bool y, bool z, bool w) noexcept requires (N == 4) { value = set4(x, y, z, w); }
+        explicit Bool(bool s) noexcept { value = set4/*set*/(s); } // #FIXME Support N != 4
+        Bool(bool x, bool y, bool z, bool w) noexcept requires (N == 4) { value = set4/*set*/(x, y, z, w); }
 		Bool(DataType b) noexcept : value(b) {}
 
 		operator DataType() const noexcept { return value; }
-		Bool operator!() const noexcept { return Bool(not4/*not<N>*/(value)); } // #FIXME Support N != 4
+		Bool operator!() const noexcept { return Bool(logicalNot(value)); }
 
 		DataType value;
 	};
 
 	Tuple() = default;
-	explicit Tuple(T s) noexcept { value = set4/*set<N>*/(s); } // #FIXME Support N != 4
-	Tuple(T x, T y, T z, T w) noexcept requires (N == 4) { value = set4(x, y, z, w); }
+	explicit Tuple(T s) noexcept { value = set4/*set*/(s); } // #FIXME Support N != 4
+	Tuple(T x, T y, T z, T w) noexcept requires (N == 4) { value = set4/*set*/(x, y, z, w); }
 	Tuple(DataType v) noexcept : value(v) {}
 
 	operator DataType() const noexcept { return value; }
 	//T operator[](int i) const noexcept { /*TODO*/ }
 	Tuple operator+() const noexcept { return *this; }
-	Tuple operator-() const noexcept { return Tuple(neg4/*neg<N>*/(value)); } // #FIXME Support N != 4
-	Tuple& operator+=(const Tuple v) noexcept { value = add4(value, v); return *this; }
-	Tuple& operator-=(const Tuple v) noexcept { value = sub4(value, v); return *this; }
-	Tuple& operator*=(const Tuple v) noexcept { value = mul4(value, v); return *this; }
-	Tuple& operator*=(T s) noexcept { value = mul4(value, set4(s)); return *this; }
-	Tuple& operator/=(const Tuple v) noexcept { value = div4(value, v); return *this; }
-	Tuple& operator/=(T s) noexcept { value = div4(value, set4(s)); return *this; }
+	Tuple operator-() const noexcept { return Tuple(neg(value)); }
+	Tuple& operator+=(const Tuple v) noexcept { value = add(value, v); return *this; }
+	Tuple& operator-=(const Tuple v) noexcept { value = subtract(value, v); return *this; }
+	Tuple& operator*=(const Tuple v) noexcept { value = multiply(value, v); return *this; }
+	Tuple& operator*=(T s) noexcept { value = multiply(value, set4/*set*/(s)); return *this; } // #FIXME Support N != 4
+	Tuple& operator/=(const Tuple v) noexcept { value = divide(value, v); return *this; }
+	Tuple& operator/=(T s) noexcept { value = divide(value, set4/*set*/(s)); return *this; } // #FIXME Support N != 4
 	Bool operator<(const Tuple& v) const noexcept { return Bool(less(value, v)); }
 	Bool operator<=(const Tuple& v) const noexcept { return Bool(lessEqual(value, v)); }
 	Bool operator>(const Tuple& v) const noexcept { return Bool(greater(value, v)); }
@@ -122,21 +122,21 @@ template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N>::Bool operator&&(const Tuple<T, N>::Bool b1, const Tuple<T, N>::Bool b2) noexcept 
 { 
-	return Tuple<T, N>::Bool(and4/*and<N>*/(b1, b2)); // #FIXME Support N != 4
+	return Tuple<T, N>::Bool(logicalAnd(b1, b2));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N>::Bool operator||(const Tuple<T, N>::Bool b1, const Tuple<T, N>::Bool b2) noexcept 
 { 
-	return Tuple<T, N>::Bool(or4(b1, b2));
+	return Tuple<T, N>::Bool(logicalOr(b1, b2));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline bool any(const Tuple<T, N>::Bool b) noexcept 
 { 
-	return any(b.value); 
+	return any(b.value);
 }
 
 template<typename T, int N>
@@ -150,56 +150,56 @@ template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator+(const Tuple<T, N> v1, const Tuple<T, N> v2) noexcept 
 { 
-	return Tuple<T, N>(add4/*add<N>*/(v1, v2)); // #FIXME Support N != 4
+	return Tuple<T, N>(add(v1, v2));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator-(const Tuple<T, N> v1, const Tuple<T, N> v2) noexcept 
 { 
-	return Tuple<T, N>(sub4(v1, v2)); 
+	return Tuple<T, N>(subtract(v1, v2)); 
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(const Tuple<T, N> v1, const Tuple<T, N> v2) noexcept 
 { 
-	return Tuple<T, N>(mul4(v1, v2)); 
+	return Tuple<T, N>(multiply(v1, v2)); 
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(T s, const Tuple<T, N> v) noexcept 
 { 
-	return Tuple<T, N>(mul4(set4(s), v)); 
+	return Tuple<T, N>(multiply(set4(s), v)); // #FIXME Support N != 4
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(const Tuple<T, N> v, T s) noexcept 
 { 
-	return Tuple<T, N>(mul4(v, set4(s))); 
+	return Tuple<T, N>(multiply(v, set4(s))); // #FIXME Support N != 4
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(const Tuple<T, N> v1, const Tuple<T, N> v2) noexcept 
 { 
-	return Tuple<T, N>(div4(v1, v2)); 
+	return Tuple<T, N>(divide(v1, v2)); 
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(T s, const Tuple<T, N> v) noexcept 
 { 
-	return Tuple<T, N>(div4(set4(s), v)); 
+	return Tuple<T, N>(divide(set4(s), v)); // #FIXME Support N != 4
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(const Tuple<T, N> v, T s) noexcept 
 { 
-	return Tuple<T, N>(div4(v, set4(s))); 
+	return Tuple<T, N>(divide(v, set4(s))); // #FIXME Support N != 4
 }
 
 //template<std::size_t I, typename T, int N>
@@ -252,7 +252,7 @@ struct equal_to<::simd::templates::Tuple<T, N>>
 {
 	bool operator()(const ::simd::templates::Tuple<T, N>& v1, const ::simd::templates::Tuple<T, N>& v2) const noexcept
 	{
-		return ::simd::all4(::simd::equal(v1.value, v2.value));
+		return ::simd::all(::simd::equal(v1.value, v2.value));
 	}
 };
 

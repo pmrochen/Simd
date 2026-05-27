@@ -117,10 +117,10 @@ const UInt32M128 MASK1 = { { { 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000 } 
 const UInt32M128 MASK2 = { { { 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000 } } };
 const UInt32M128 MASK3 = { { { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 } } };
 const UInt32M128 MASK4 = { { { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF } } };
-const UInt32M128 COMPONENT_SIGNS[] = { { { { 0x80000000, 0x00000000, 0x00000000, 0x00000000 } } },
-	{ { { 0x00000000, 0x80000000, 0x00000000, 0x00000000 } } },
-	{ { { 0x00000000, 0x00000000, 0x80000000, 0x00000000 } } },
-	{ { { 0x00000000, 0x00000000, 0x00000000, 0x80000000 } } } };
+//const UInt32M128 COMPONENT_SIGNS[] = { { { { 0x80000000, 0x00000000, 0x00000000, 0x00000000 } } },
+//	{ { { 0x00000000, 0x80000000, 0x00000000, 0x00000000 } } },
+//	{ { { 0x00000000, 0x00000000, 0x80000000, 0x00000000 } } },
+//	{ { { 0x00000000, 0x00000000, 0x00000000, 0x80000000 } } } };
 const UInt32M128 COMPONENT_MASKS[] = { { { { 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000 } } },
 	{ { { 0x00000000, 0xFFFFFFFF, 0x00000000, 0x00000000 } } },
 	{ { { 0x00000000, 0x00000000, 0xFFFFFFFF, 0x00000000 } } },
@@ -571,9 +571,9 @@ inline float toFloat/*extract*/(__m128 s)
 }
 
 template<int I>
+	requires ((I & ~3) == 0)
 inline float extract(__m128 v)
 {
-	static_assert((I & ~3) == 0);
 	if constexpr (I == 0)
 		return _mm_cvtss_f32(v);
 	else
@@ -596,9 +596,9 @@ inline __m128 cutoff3(__m128 xyz)
 }
 
 template<int I>
+	requires ((I & ~3) == 0)
 inline __m128 insert(float s, __m128 v)
 {
-	static_assert((I & ~3) == 0);
 	__m128 t = _mm_set_ss(s);
 	if constexpr (I == 0)
 		return _mm_move_ss(v, t);
@@ -612,9 +612,9 @@ inline __m128 insert(float s, __m128 v)
 }
 
 template<int I>
+	requires ((I & ~3) == 0)
 inline __m128 insert1(__m128 x, __m128 v)
 {
-	static_assert((I & ~3) == 0);
 	if constexpr (I == 0)
 		return _mm_move_ss(v, x);
 	else
@@ -641,37 +641,6 @@ inline __m128 insert3(__m128 xyz, __m128 v)
 #endif
 }
 
-inline __m128 and4(__m128 v1, __m128 v2)
-{
-	return _mm_and_ps(v1, v2);
-}
-
-inline __m128 or4(__m128 v1, __m128 v2)
-{
-	return _mm_or_ps(v1, v2);
-}
-
-inline __m128 andNot4(__m128 v1, __m128 v2)
-{
-	return _mm_andnot_ps(v2, v1);
-}
-
-inline __m128 not4(__m128 v)
-{
-	return _mm_xor_ps(v, constant4i<__m128, -1, -1, -1, -1>()/*_mm_castsi128_ps(_mm_set1_epi32(-1))*/);
-}
-
-//template<bool X, bool Y, bool Z, bool W>
-//inline __m128 not(__m128 v)
-//{
-//	return _mm_xor_ps(v, _mm_castsi128_ps(_mm_setr_epi32(-(int)X, -(int)Y, -(int)Z, -(int)W)));
-//}
-
-//inline __m128 not(__m128 v, __m128 mask)
-//{
-//	return _mm_xor_ps(v, mask);
-//}
-
 inline __m128 select(__m128 b, __m128 v1, __m128 v2) // b ? v1 : v2
 {
 #if (SIMD_SSE >= 4)
@@ -691,9 +660,9 @@ inline __m128 select(__m128 b, __m128 v1, __m128 v2) // b ? v1 : v2
 //}
 
 template<int I>
+	requires ((I & ~3) == 0)
 inline __m128 broadcast(__m128 v)
 {
-	static_assert((I & ~3) == 0);
 	return _mm_shuffle_ps(v, v, _MM_SHUFFLE(I, I, I, I));
 }
 
@@ -702,31 +671,10 @@ inline __m128 broadcast(__m128 v)
 //	return _mm_shuffle_ps(v, v, _MM_SHUFFLE(index, index, index, index));
 //}
 
-//template<int M>
-//inline __m128 swizzle2(__m128 v)
-//{
-//	static_assert((M & ~0xFF/*0xF*/) == 0);
-//	return _mm_shuffle_ps(v, _mm_setzero_ps(), M);
-//}
-
-//template<int M>
-//inline __m128 swizzle3(__m128 v)
-//{
-//	static_assert((M & ~0xFF/*0x3F*/) == 0);
-//	return _mm_and_ps(_mm_shuffle_ps(v, v, M), detail::MASK3);
-//}
-
-//template<int M>
-//inline __m128 swizzle4(__m128 v)
-//{
-//	static_assert((M & ~0xFF) == 0);
-//	return _mm_shuffle_ps(v, v, M);
-//}
-
 template<int M>
+	requires ((M & ~0xFF) == 0)
 inline __m128 swizzle(__m128 v)
 {
-	static_assert((M & ~0xFF) == 0);
 	if constexpr (M == _MM_SHUFFLE(1, 1, 0, 0))
 		return _mm_unpacklo_ps(v, v);
 	else if constexpr (M == _MM_SHUFFLE(3, 3, 2, 2))
@@ -740,16 +688,16 @@ inline __m128 swizzle(__m128 v)
 }
 
 //template<int A, int B, int C, int D>
+//	requires (((A & ~3) == 0) && ((B & ~3) == 0) && ((C & ~3) == 0) && ((D & ~3) == 0))
 //inline __m128 swizzle(__m128 v)
 //{
-//	static_assert(((A & ~3) == 0) && ((B & ~3) == 0) && ((C & ~3) == 0) && ((D & ~3) == 0));
 //	return _mm_shuffle_ps(v, v, _MM_SHUFFLE(D, C, B, A));
 //}
 
 template<int A, int B, int C, int D>
+	requires ((A >= -4) && (A < 4) && (B >= -4) && (B < 4) && (C >= -4) && (C < 4) && (D >= -4) && (D < 4))
 inline __m128 swizzle(__m128 v)
 {
-	static_assert((A >= -4) && (A < 4) && (B >= -4) && (B < 4) && (C >= -4) && (C < 4) && (D >= -4) && (D < 4));
 	if constexpr ((A < 0) || (B < 0) || (C < 0) || (D < 0))
 	{
 		if constexpr ((((A < 0) ? ~A : A) != 0) || (((B < 0) ? ~B : B) != 1) || (((C < 0) ? ~C : C) != 2) || (((D < 0) ? ~D : D) != 3))
@@ -782,47 +730,74 @@ inline __m128 swizzle(__m128 v)
 //	return _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 1, 2, 3));
 //}
 
-inline bool all2(__m128 b)
+inline __m128 not4(__m128 v)
 {
-	return ((_mm_movemask_ps(b) & 3) == 3);
+	return _mm_xor_ps(v, constant4i<__m128, -1, -1, -1, -1>()/*_mm_castsi128_ps(_mm_set1_epi32(-1))*/);
 }
 
-inline bool all3(__m128 b)
+//template<bool X, bool Y, bool Z, bool W>
+//inline __m128 not(__m128 v)
+//{
+//	return _mm_xor_ps(v, _mm_castsi128_ps(_mm_setr_epi32(-(int)X, -(int)Y, -(int)Z, -(int)W)));
+//}
+
+//inline __m128 not(__m128 v, __m128 mask)
+//{
+//	return _mm_xor_ps(v, mask);
+//}
+
+inline __m128 and4(__m128 v1, __m128 v2)
 {
-	return ((_mm_movemask_ps(b) & 7) == 7);
+	return _mm_and_ps(v1, v2);
 }
 
-inline bool all4(__m128 b)
+inline __m128 or4(__m128 v1, __m128 v2)
 {
-	return ((_mm_movemask_ps(b) /*& 0xF*/) == 0xF);
+	return _mm_or_ps(v1, v2);
+}
+
+//inline __m128 andNot4(__m128 v1, __m128 v2)
+//{
+//	return _mm_andnot_ps(v2, v1);
+//}
+
+template<int N = 4>
+	requires ((N >= 1) && (N <= 4))
+inline bool all(__m128 b)
+{
+	constexpr int m = (1 << N) - 1;
+	if constexpr (m < 0xF)
+		return ((_mm_movemask_ps(b) & m) == m);
+	else
+		return (_mm_movemask_ps(b) == m);
 }
 
 #if (SIMD_SSE >= 2)
-inline bool all4(__m128i b)
+template<int N = 4>
+	requires ((N >= 1) && (N <= 4))
+inline bool all(__m128i b)
 {
-	return ((_mm_movemask_ps(_mm_castsi128_ps(b)) /*& 0xF*/) == 0xF);
+	return all<N>(_mm_castsi128_ps(b));
 }
 #endif
 
-inline bool any2(__m128 b)
+template<int N = 4>
+	requires ((N >= 1) && (N <= 4))
+inline bool any(__m128 b)
 {
-	return (_mm_movemask_ps(b) & 3);
-}
-
-inline bool any3(__m128 b)
-{
-	return (_mm_movemask_ps(b) & 7);
-}
-
-inline bool any4(__m128 b)
-{
-	return (_mm_movemask_ps(b) /*& 0xF*/);
+	constexpr int m = (1 << N) - 1;
+	if constexpr (m < 0xF)
+		return (bool)(_mm_movemask_ps(b) & m);
+	else
+		return (bool)_mm_movemask_ps(b);
 }
 
 #if (SIMD_SSE >= 2)
-inline bool any4(__m128i b)
+template<int N = 4>
+	requires ((N >= 1) && (N <= 4))
+inline bool any(__m128i b)
 {
-	return (_mm_movemask_ps(_mm_castsi128_ps(b)) /*& 0xF*/);
+	return any<N>(_mm_castsi128_ps(b));
 }
 #endif
 
@@ -830,6 +805,13 @@ inline int asIndex(__m128 b)
 {
 	return /*std::countr_zero*/bitops::ctz(_mm_movemask_ps(b));
 }
+
+#if (SIMD_SSE >= 2)
+inline int asIndex(__m128i b)
+{
+	return asIndex(_mm_castsi128_ps(b));
+}
+#endif
 
 inline __m128 equal(__m128 v1, __m128 v2)
 {
@@ -893,10 +875,10 @@ inline __m128 neg4(__m128 v)
 	return _mm_xor_ps(v, detail::SIGN4/*_mm_castsi128_ps(_mm_set1_epi32(0x80000000))*/);
 }
 
-inline __m128 neg(__m128 v, __m128 mask)
-{
-	return _mm_xor_ps(v, _mm_and_ps(detail::SIGN4/*_mm_castsi128_ps(_mm_set1_epi32(0x80000000))*/, mask));
-}
+//inline __m128 neg(__m128 v, __m128 mask)
+//{
+//	return _mm_xor_ps(v, _mm_and_ps(detail::SIGN4/*_mm_castsi128_ps(_mm_set1_epi32(0x80000000))*/, mask));
+//}
 
 //template<bool X, bool Y, bool Z, bool W>
 //inline __m128 neg(__m128 v)
@@ -904,12 +886,12 @@ inline __m128 neg(__m128 v, __m128 mask)
 //	return _mm_xor_ps(v, constant4i<__m128, (int)X << 31, (int)Y << 31, (int)Z << 31, (int)W << 31>()/*_mm_castsi128_ps(_mm_setr_epi32((int)X << 31, (int)Y << 31, (int)Z << 31, (int)W << 31))*/);
 //}
 
-template<int I>
-inline __m128 neg(__m128 v)
-{
-	static_assert((I & ~3) == 0);
-	return _mm_xor_ps(v, detail::COMPONENT_SIGNS[I]);
-}
+//template<int I>
+//	requires ((I & ~3) == 0)
+//inline __m128 neg(__m128 v)
+//{
+//	return _mm_xor_ps(v, detail::COMPONENT_SIGNS[I]);
+//}
 
 template<typename M>
 inline __m128 neg(__m128 v)
@@ -1121,20 +1103,6 @@ inline __m128 isInf(__m128 v)
 #endif
 }
 
-inline std::size_t hash(__m128 v)
-{
-#if (SIMD_SSE >= 2)
-	__m128i x = _mm_castps_si128(v);
-	__m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-	x = _mm_xor_si128(x, y);
-	y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
-	x = _mm_xor_si128(x, y);
-	return static_cast<std::size_t>(_mm_cvtsi128_si64(x) ^ _mm_extract_epi64(x, 1));
-#else
-	#error // #TODO
-#endif
-}
-
 #if (SIMD_SSE >= 2)
 inline std::size_t hash(__m128i v)
 {
@@ -1145,6 +1113,15 @@ inline std::size_t hash(__m128i v)
 	return static_cast<std::size_t>(_mm_cvtsi128_si64(x) ^ _mm_extract_epi64(x, 1));
 }
 #endif
+
+inline std::size_t hash(__m128 v)
+{
+#if (SIMD_SSE >= 2)
+	return hash(_mm_castps_si128(v));
+#else
+#error // #TODO
+#endif
+}
 
 } // namespace simd::sse
 
