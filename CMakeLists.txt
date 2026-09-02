@@ -21,11 +21,11 @@ add_library(Core::${SIMD_LIB_NAME} ALIAS ${SIMD_LIB_NAME})
 
 set(SIMD_HEADERS
 	Include/Simd/AvxIntrinsics.hpp
-	Include/Simd/Float4.hpp
 	Include/Simd/Functional.hpp
 	Include/Simd/Intrinsics.hpp
 	Include/Simd/Simd.hpp
 	Include/Simd/SseIntrinsics.hpp
+	Include/Simd/Tuple.hpp
 )
 
 target_sources(${SIMD_LIB_NAME}
