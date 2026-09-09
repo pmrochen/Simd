@@ -120,28 +120,28 @@ struct alignas(sizeof(T)*N) Tuple
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
-inline Tuple<T, N>::Bool operator&&(const Tuple<T, N>::Bool b1, const Tuple<T, N>::Bool b2) noexcept 
+inline typename Tuple<T, N>::Bool operator&&(const typename Tuple<T, N>::Bool b1, const typename Tuple<T, N>::Bool b2) noexcept 
 { 
 	return Tuple<T, N>::Bool(logicalAnd(b1, b2));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
-inline Tuple<T, N>::Bool operator||(const Tuple<T, N>::Bool b1, const Tuple<T, N>::Bool b2) noexcept 
+inline typename Tuple<T, N>::Bool operator||(const typename Tuple<T, N>::Bool b1, const typename Tuple<T, N>::Bool b2) noexcept 
 { 
 	return Tuple<T, N>::Bool(logicalOr(b1, b2));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
-inline bool any(const Tuple<T, N>::Bool b) noexcept 
+inline bool any(const typename Tuple<T, N>::Bool b) noexcept 
 { 
 	return any(b.value);
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
-inline bool all(const Tuple<T, N>::Bool b) noexcept 
+inline bool all(const typename Tuple<T, N>::Bool b) noexcept 
 { 
 	return all(b.value); 
 }
