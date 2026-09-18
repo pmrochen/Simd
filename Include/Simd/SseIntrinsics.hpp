@@ -89,7 +89,7 @@ inline unsigned int ctz(unsigned int x) { return std::countr_zero(x); }
 
 namespace detail {
 
-_MM_ALIGN16 struct UInt32M128
+struct alignas(16) UInt32M128
 {
 	inline operator __m128() const { return xmm; }
 	//inline operator __m128i() const { return _mm_castps_si128(xmm); }
@@ -192,7 +192,7 @@ inline __m128 constant1()
 {
 	if constexpr (S == 0)
 		return _mm_setzero_ps();
-	static const _MM_ALIGN16 union
+	static const union alignas(16)
 	{
 		float f[4];
 		__m128 xmm;
@@ -208,7 +208,7 @@ inline __m128 constant4()
 {
 	if constexpr (S == 0)
 		return _mm_setzero_ps();
-	static const _MM_ALIGN16 union
+	static const union alignas(16)
 	{
 		float f[4];
 		__m128 xmm;
@@ -224,7 +224,7 @@ inline __m128 constant4()
 {
 	if constexpr ((X == 0) && (Y == 0) && (Z == 0) && (W == 0))
 		return _mm_setzero_ps();
-	static const _MM_ALIGN16 union
+	static const union alignas(16)
 	{
 		float f[4];
 		__m128 xmm;
@@ -240,7 +240,7 @@ inline __m128 constant4i()
 {
 	if constexpr (S == 0)
 		return _mm_setzero_ps();
-	static const _MM_ALIGN16 union
+	static const union alignas(16)
 	{
 		int i[4];
 		__m128 xmm;
@@ -254,7 +254,7 @@ inline __m128i constant4i()
 {
 	if constexpr (S == 0)
 		return _mm_setzero_si128();
-	static const _MM_ALIGN16 union
+	static const union alignas(16)
 	{
 		int i[4];
 		__m128i xmm;
@@ -271,7 +271,7 @@ inline __m128 constant4i()
 {
 	if constexpr ((X == 0) && (Y == 0) && (Z == 0) && (W == 0))
 		return _mm_setzero_ps();
-	static const _MM_ALIGN16 union
+	static const union alignas(16)
 	{
 		int i[4];
 		__m128 xmm;
@@ -285,7 +285,7 @@ inline __m128i constant4i()
 {
 	if constexpr ((X == 0) && (Y == 0) && (Z == 0) && (W == 0))
 		return _mm_setzero_si128();
-	static const _MM_ALIGN16 union
+	static const union alignas(16)
 	{
 		int i[4];
 		__m128i xmm;
