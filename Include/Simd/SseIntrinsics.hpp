@@ -959,6 +959,11 @@ inline __m128 mulAdd4(__m128 v1, __m128 v2, __m128 v3)
 	return _mm_add_ps(_mm_mul_ps(v1, v2), v3);
 }
 
+inline __m128 mulSub4(__m128 v1, __m128 v2, __m128 v3)
+{
+	return _mm_sub_ps(_mm_mul_ps(v1, v2), v3);
+}
+
 inline __m128 sqrt1(__m128 s)
 {
 	return _mm_sqrt_ss(s);
