@@ -11,9 +11,6 @@
 
 namespace std {
 
-template<typename T>
-struct equal_to;
-
 #if SIMD_HAS_FLOAT4
 template<>
 struct equal_to<::simd::float4>
@@ -35,9 +32,6 @@ struct equal_to<::simd::int4>
 	}
 };
 #endif /* SIMD_HAS_INT4 */
-
-template<typename T>
-struct hash;
 
 #if SIMD_HAS_FLOAT4
 template<>

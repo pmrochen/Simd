@@ -227,25 +227,16 @@ using Int4 = templates::Tuple<int, 4>;
 
 namespace std {
 
-template<size_t I, typename T>
-struct tuple_element;
-
 template<size_t I, typename T, int N>
 struct tuple_element<I, ::simd::templates::Tuple<T, N>>
 {
 	using type = T;
 };
 
-template<typename T>
-struct tuple_size;
-
 template<typename T, int N>
-struct tuple_size<::simd::templates::Tuple<T, N>> : integral_constant<size_t, N>
+struct tuple_size<::simd::templates::Tuple<T, N>> : public integral_constant<size_t, N>
 {
 };
-
-template<typename T>
-struct equal_to;
 
 template<typename T, int N>
 struct equal_to<::simd::templates::Tuple<T, N>>
@@ -255,9 +246,6 @@ struct equal_to<::simd::templates::Tuple<T, N>>
 		return ::simd::all(::simd::equal(v1.value, v2.value));
 	}
 };
-
-template<typename T>
-struct hash;
 
 template<typename T, int N>
 struct hash<::simd::templates::Tuple<T, N>>
