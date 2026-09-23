@@ -36,8 +36,11 @@ using namespace avx;
 
 template<typename T> inline decltype(set(T)) set1(T s) { return set<1>(s); }
 template<typename T> inline decltype(set(T)) set2(T s) { return set<2>(s); }
+template<typename T> inline decltype(set(T, T)) set2(T x, T y) { return set(x, y); }
 template<typename T> inline decltype(set(T)) set3(T s) { return set<3>(s); }
+template<typename T> inline decltype(set(T, T, T)) set3(T x, T y, T z) { return set(x, y, z); }
 template<typename T> inline decltype(set(T)) set4(T s) { return set<4>(s); }
+template<typename T> inline decltype(set(T, T, T, T)) set4(T x, T y, T z, T w) { return set(x, y, z, w); }
 template<typename T> inline decltype(load(const T*)) load2(const T* v) { return load<2>(v); }
 template<typename T> inline decltype(load(const T*)) load3(const T* v) { return load<3>(v); }
 template<typename T> inline decltype(load(const T*)) load4(const T* v) { return load<4>(v); }
