@@ -184,27 +184,27 @@ inline __m128 zero()
 	return _mm_setzero_ps();
 }
 
+// template<typename T, int S>
+// inline T constant1();
+
+// template<int S>
+// inline __m128 constant1()
+// {
+// 	if constexpr (S == 0)
+// 		return _mm_setzero_ps();
+// 	static const union alignas(16)
+// 	{
+// 		float f[4];
+// 		__m128 xmm;
+// 	} u = { { (float)S, 0.f, 0.f, 0.f } };
+// 	return u.xmm;
+// }
+
 template<typename T, int S>
-inline T constant1();
+inline T constant();
 
 template<int S>
-inline __m128 constant1()
-{
-	if constexpr (S == 0)
-		return _mm_setzero_ps();
-	static const union alignas(16)
-	{
-		float f[4];
-		__m128 xmm;
-	} u = { { (float)S, 0.f, 0.f, 0.f } };
-	return u.xmm;
-}
-
-template<typename T, int S>
-inline T constant4();
-
-template<int S>
-inline __m128 constant4()
+inline __m128 constant()
 {
 	if constexpr (S == 0)
 		return _mm_setzero_ps();
@@ -217,10 +217,10 @@ inline __m128 constant4()
 }
 
 template<typename T, int X, int Y, int Z, int W>
-inline T constant4();
+inline T constant();
 
 template<int X, int Y, int Z, int W>
-inline __m128 constant4()
+inline __m128 constant()
 {
 	if constexpr ((X == 0) && (Y == 0) && (Z == 0) && (W == 0))
 		return _mm_setzero_ps();
@@ -233,10 +233,10 @@ inline __m128 constant4()
 }
 
 template<typename T, int S>
-inline T constant4i();
+inline T bits();
 
 template<int S>
-inline __m128 constant4i()
+inline __m128 bits()
 {
 	if constexpr (S == 0)
 		return _mm_setzero_ps();
@@ -250,7 +250,7 @@ inline __m128 constant4i()
 
 #if (SIMD_SSE >= 2)
 template<int S>
-inline __m128i constant4i()
+inline __m128i bits()
 {
 	if constexpr (S == 0)
 		return _mm_setzero_si128();
@@ -264,10 +264,10 @@ inline __m128i constant4i()
 #endif
 
 template <typename T, int X, int Y, int Z, int W>
-inline T constant4i();
+inline T bits();
 
 template<int X, int Y, int Z, int W>
-inline __m128 constant4i()
+inline __m128 bits()
 {
 	if constexpr ((X == 0) && (Y == 0) && (Z == 0) && (W == 0))
 		return _mm_setzero_ps();
@@ -281,7 +281,7 @@ inline __m128 constant4i()
 
 #if (SIMD_SSE >= 2)
 template<int X, int Y, int Z, int W>
-inline __m128i constant4i()
+inline __m128i bits()
 {
 	if constexpr ((X == 0) && (Y == 0) && (Z == 0) && (W == 0))
 		return _mm_setzero_si128();
@@ -294,235 +294,188 @@ inline __m128i constant4i()
 }
 #endif
 
-inline __m128 set1(float s)
+template<int N = 1>
+	requires ((N >= 1) && (N <= 4))
+inline __m128 set(float s)
 {
-	return _mm_set_ss(s);
+	if constexpr (N == 1)
+	{
+		return _mm_set_ss(s);
+	}
+	else if constexpr (N == 2)
+	{
+		__m128 t = _mm_set_ss(s);
+		return _mm_unpacklo_ps(t, t);
+	} 
+	else if constexpr (N == 3)
+	{
+		__m128 t = _mm_set_ss(s);
+		return _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 0, 0, 0));
+	}
+	else //if constexpr (N == 4)
+	{
+		return _mm_set_ps1(s);
+	}
 }
 
-inline __m128 set2(float s)
-{ 
-	__m128 t = _mm_set_ss(s);
-	return _mm_unpacklo_ps(t, t); 
-}
-
-inline __m128 set2(float x, float y)
-{ 
-	return _mm_unpacklo_ps(_mm_set_ss(x), _mm_set_ss(y)); 
-}
-
-inline __m128 set2(__m128 x, __m128 y)
-{
-	return _mm_unpacklo_ps(x, y);
-}
-
-inline __m128 set3(float s)
-{
-	__m128 t = _mm_set_ss(s);
-	return _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 0, 0, 0));
-}
-
-inline __m128 set3(float x, float y, float z)
-{
-	return _mm_movelh_ps(_mm_unpacklo_ps(_mm_set_ss(x), _mm_set_ss(y)), _mm_set_ss(z));
-}
-
-inline __m128 set3(__m128 x, __m128 y, __m128 z)
-{
-	return _mm_movelh_ps(_mm_unpacklo_ps(x, y), z);
-}
-
-inline __m128 set4(float s)
-{
-	return _mm_set_ps1(s);
-}
-
-//inline __m128 set4(bool s)
+//inline __m128 set/*4*/(bool s)
 //{
 //	return _mm_castsi128_ps(_mm_set1_epi32(-(int)s));
 //}
 
-inline __m128 set4(float x, float y, float z, float w)
+inline __m128 set(float x, float y)
+{ 
+	return _mm_unpacklo_ps(_mm_set_ss(x), _mm_set_ss(y)); 
+}
+
+inline __m128 set(__m128 x, __m128 y)
+{
+	return _mm_unpacklo_ps(x, y);
+}
+
+inline __m128 set(float x, float y, float z)
+{
+	return _mm_movelh_ps(_mm_unpacklo_ps(_mm_set_ss(x), _mm_set_ss(y)), _mm_set_ss(z));
+}
+
+inline __m128 set(__m128 x, __m128 y, __m128 z)
+{
+	return _mm_movelh_ps(_mm_unpacklo_ps(x, y), z);
+}
+
+inline __m128 set(float x, float y, float z, float w)
 { 
 	return _mm_setr_ps(x, y, z, w); 
 }
 
-//inline __m128 set4(bool x, bool y, bool z, bool w)
+//inline __m128 set(bool x, bool y, bool z, bool w)
 //{
 //	return _mm_castsi128_ps(_mm_setr_epi32(-(int)x, -(int)y, -(int)z, -(int)w));
 //}
 
-inline __m128 set4(__m128 x, __m128 y, __m128 z, __m128 w)
+inline __m128 set(__m128 x, __m128 y, __m128 z, __m128 w)
 {
 	return _mm_movelh_ps(_mm_unpacklo_ps(x, y), _mm_unpacklo_ps(z, w));
 }
 
-inline __m128 load2(const float* v)
+template<int N>
+	requires ((N >= 1) && (N <= 4))
+inline __m128 load(const float* v)
 {
-	return _mm_unpacklo_ps(_mm_load_ss(&v[0]), _mm_load_ss(&v[1])); 
-}
-
-inline __m128 load3(const float* v)
-{
-	return _mm_movelh_ps(_mm_unpacklo_ps(_mm_load_ss(&v[0]), _mm_load_ss(&v[1])), _mm_load_ss(&v[2]));
-}
-
-inline __m128 load4(const float* v)
-{ 
-	return _mm_loadu_ps(v); 
+	if constexpr (N == 1)
+		return _mm_load_ss(v);
+	else if constexpr (N == 2)
+		return _mm_unpacklo_ps(_mm_load_ss(&v[0]), _mm_load_ss(&v[1]));
+	else if constexpr (N == 3)
+		return _mm_movelh_ps(_mm_unpacklo_ps(_mm_load_ss(&v[0]), _mm_load_ss(&v[1])), _mm_load_ss(&v[2]));
+	else //if constexpr (N == 4)
+		return _mm_loadu_ps(v); 
 }
 
 #if (SIMD_SSE >= 2)
-inline __m128i load4(const int* v)
+template<int N>
+	requires (N == 4)
+inline __m128i load(const int* v)
 {
 	return _mm_loadu_si128((const __m128i*)v);
 }
 #endif
 
-inline void store2(__m128 u, float* v) 
-{ 
-	//_mm_storel_pi((__m64*)&v[0], u); 
-	_mm_store_ss(&v[0], u);
-	_mm_store_ss(&v[1], _mm_shuffle_ps(u, u, _MM_SHUFFLE(1, 1, 1, 1)));
+template<int N>
+	requires ((N >= 1) && (N <= 4))
+inline void store(__m128 u, float* v) 
+{
+	if constexpr (N == 4)
+	{
+		_mm_storeu_ps(v, u); 
+	}
+	else
+	{
+		_mm_store_ss(&v[0], u);
+		if constexpr (N >= 2)
+			_mm_store_ss(&v[1], _mm_shuffle_ps(u, u, _MM_SHUFFLE(1, 1, 1, 1)));
+		if constexpr (N >= 3)
+			_mm_store_ss(&v[2], _mm_shuffle_ps(u, u, _MM_SHUFFLE(2, 2, 2, 2)));
+	} 
 }
 
-inline void store3(__m128 u, float* v) 
-{ 
-	//_mm_storel_pi((__m64*)&v[0], u);
-	//_mm_store_ss(&v[2], _mm_shuffle_ps(u, u, _MM_SHUFFLE(2, 2, 2, 2)));
-	_mm_store_ss(&v[0], u);
-	_mm_store_ss(&v[1], _mm_shuffle_ps(u, u, _MM_SHUFFLE(1, 1, 1, 1)));
-	_mm_store_ss(&v[2], _mm_shuffle_ps(u, u, _MM_SHUFFLE(2, 2, 2, 2)));
-}
-
-inline void store4(__m128 u, float* v) 
-{ 
-	_mm_storeu_ps(v, u); 
-}
-
-inline __m128 pack2x2(__m128 row0, __m128 row1)
+inline __m128 pack(__m128 row0, __m128 row1)
 {
 	return _mm_movelh_ps(row0, row1);
 }
 
-inline void pack2x2(__m128 row0, __m128 row1, float* m)
-{
-	_mm_storeu_ps(m, _mm_movelh_ps(row0, row1));
-}
+// inline void pack2x2(__m128 row0, __m128 row1, float* m)
+// {
+// 	_mm_storeu_ps(m, _mm_movelh_ps(row0, row1));
+// }
 
-inline void pack3x3(__m128 row0, __m128 row1, __m128 row2, float* m)
-{
-	row0 = _mm_shuffle_ps(row0, _mm_shuffle_ps(row0, row1, _MM_SHUFFLE(0, 0, 2, 2)), _MM_SHUFFLE(2, 0, 1, 0));
-	row1 = _mm_shuffle_ps(row1, row2, _MM_SHUFFLE(1, 0, 2, 1));
-	row2 = _mm_shuffle_ps(row2, row2, _MM_SHUFFLE(2, 2, 2, 2));
-	_mm_storeu_ps(&m[0], row0);
-	_mm_storeu_ps(&m[4], row1);
-	_mm_store_ss(&m[8], row2);
-}
+// inline void pack3x3(__m128 row0, __m128 row1, __m128 row2, float* m)
+// {
+// 	row0 = _mm_shuffle_ps(row0, _mm_shuffle_ps(row0, row1, _MM_SHUFFLE(0, 0, 2, 2)), _MM_SHUFFLE(2, 0, 1, 0));
+// 	row1 = _mm_shuffle_ps(row1, row2, _MM_SHUFFLE(1, 0, 2, 1));
+// 	row2 = _mm_shuffle_ps(row2, row2, _MM_SHUFFLE(2, 2, 2, 2));
+// 	_mm_storeu_ps(&m[0], row0);
+// 	_mm_storeu_ps(&m[4], row1);
+// 	_mm_store_ss(&m[8], row2);
+// }
 
-inline void pack4x3(__m128 row0, __m128 row1, __m128 row2, __m128 row3, float* m)
-{
-	__m128 t = _mm_shuffle_ps(row1, row2, _MM_SHUFFLE(1, 0, 2, 1));
-	row1 = _mm_shuffle_ps(row1, row0, _MM_SHUFFLE(2, 2, 0, 0));
-	row0 = _mm_shuffle_ps(row0, row1, _MM_SHUFFLE(0, 2, 1, 0));
-	row2 = _mm_shuffle_ps(row2, row3, _MM_SHUFFLE(0, 0, 2, 2));
-	row2 = _mm_shuffle_ps(row2, row3, _MM_SHUFFLE(2, 1, 2, 0));
-	_mm_storeu_ps(&m[0], row0);
-	_mm_storeu_ps(&m[4], t);
-	_mm_storeu_ps(&m[8], row2);
-}
+// inline void pack4x3(__m128 row0, __m128 row1, __m128 row2, __m128 row3, float* m)
+// {
+// 	__m128 t = _mm_shuffle_ps(row1, row2, _MM_SHUFFLE(1, 0, 2, 1));
+// 	row1 = _mm_shuffle_ps(row1, row0, _MM_SHUFFLE(2, 2, 0, 0));
+// 	row0 = _mm_shuffle_ps(row0, row1, _MM_SHUFFLE(0, 2, 1, 0));
+// 	row2 = _mm_shuffle_ps(row2, row3, _MM_SHUFFLE(0, 0, 2, 2));
+// 	row2 = _mm_shuffle_ps(row2, row3, _MM_SHUFFLE(2, 1, 2, 0));
+// 	_mm_storeu_ps(&m[0], row0);
+// 	_mm_storeu_ps(&m[4], t);
+// 	_mm_storeu_ps(&m[8], row2);
+// }
 
-inline std::tuple<__m128, __m128> unpack2x2(__m128 m)
+inline std::tuple<__m128, __m128> unpack(__m128 m)
 {
 	const __m128 zero = _mm_setzero_ps();
 	return { _mm_movelh_ps(m, zero), _mm_movehl_ps(zero, m) };
 }
 
-inline std::tuple<__m128, __m128> unpack2x2(const float* m)
-{
-	__m128 t = _mm_loadu_ps(m);
-	const __m128 zero = _mm_setzero_ps();
-	return { _mm_movelh_ps(t, zero), _mm_movehl_ps(zero, t) };
-}
+// inline std::tuple<__m128, __m128> unpack2x2(const float* m)
+// {
+// 	__m128 t = _mm_loadu_ps(m);
+// 	const __m128 zero = _mm_setzero_ps();
+// 	return { _mm_movelh_ps(t, zero), _mm_movehl_ps(zero, t) };
+// }
 
-inline void unpack2x2(__m128 m, __m128& row0, __m128& row1)
-{
-	const __m128 zero = _mm_setzero_ps();
-	row0 = _mm_movelh_ps(m, zero);
-	row1 = _mm_movehl_ps(zero, m);
-}
+// inline std::tuple<__m128, __m128, __m128> unpack3x3(const float* m)
+// {
+// 	__m128 t0 = _mm_loadu_ps(&m[0]);
+// 	__m128 t1 = _mm_loadu_ps(&m[4]);
+// 	__m128 mask3 = detail::MASK3;
+// 	__m128 t2 = _mm_shuffle_ps(t0, t1, _MM_SHUFFLE(1, 0, 3, 3));
+// 	return { _mm_and_ps(t0, mask3), 										// 0, m02, m01, m00
+// 		_mm_and_ps(_mm_shuffle_ps(t2, t2, _MM_SHUFFLE(3, 3, 2, 1)), mask3),	// 0, m12, m11, m10
+// 		_mm_shuffle_ps(t1, _mm_load_ss(&m[8]), _MM_SHUFFLE(1, 0, 3, 2)) };	// 0, m22, m21, m20
+// }
 
-inline void unpack2x2(const float* m, __m128& row0, __m128& row1)
-{
-	__m128 t = _mm_loadu_ps(m);
-	const __m128 zero = _mm_setzero_ps();
-	row0 = _mm_movelh_ps(t, zero);
-	row1 = _mm_movehl_ps(zero, t);
-}
+// inline std::tuple<__m128, __m128, __m128, __m128> unpack4x3(const float* m)
+// {
+// 	__m128 t0 = _mm_loadu_ps(&m[0]);
+// 	__m128 t1 = _mm_loadu_ps(&m[4]);
+// 	__m128 mask3 = detail::MASK3;
+// 	__m128 t2 = _mm_shuffle_ps(t0, t1, _MM_SHUFFLE(1, 0, 3, 3));
+// 	__m128 t3 = _mm_loadu_ps(&m[8]);
+// 	return { _mm_and_ps(t0, mask3), 											// 0, m02, m01, m00
+// 		_mm_and_ps(_mm_shuffle_ps(t2, t2, _MM_SHUFFLE(3, 3, 2, 1)), mask3),		// 0, m12, m11, m10
+// 		_mm_and_ps(_mm_shuffle_ps(t1, t3, _MM_SHUFFLE(0, 0, 3, 2)), mask3), 	// 0, m22, m21, m20
+// 		_mm_and_ps(_mm_shuffle_ps(t3, t3, _MM_SHUFFLE(3, 3, 2, 1)), mask3) }; 	// 0, m32, m31, m30
+// }
 
-inline std::tuple<__m128, __m128, __m128> unpack3x3(const float* m)
-{
-	__m128 t0 = _mm_loadu_ps(&m[0]);
-	__m128 t1 = _mm_loadu_ps(&m[4]);
-	__m128 mask3 = detail::MASK3;
-	__m128 t2 = _mm_shuffle_ps(t0, t1, _MM_SHUFFLE(1, 0, 3, 3));
-	return { _mm_and_ps(t0, mask3), 										// 0, m02, m01, m00
-		_mm_and_ps(_mm_shuffle_ps(t2, t2, _MM_SHUFFLE(3, 3, 2, 1)), mask3),	// 0, m12, m11, m10
-		_mm_shuffle_ps(t1, _mm_load_ss(&m[8]), _MM_SHUFFLE(1, 0, 3, 2)) };	// 0, m22, m21, m20
-}
-
-inline void unpack3x3(const float* m, __m128& row0, __m128& row1, __m128& row2)
-{
-	__m128 t0 = _mm_loadu_ps(&m[0]);
-	__m128 t1 = _mm_loadu_ps(&m[4]);
-	__m128 mask3 = detail::MASK3;
-	__m128 t2 = _mm_shuffle_ps(t0, t1, _MM_SHUFFLE(1, 0, 3, 3));
-	row0 = _mm_and_ps(t0, mask3); 												// 0, m02, m01, m00
-	row1 = _mm_and_ps(_mm_shuffle_ps(t2, t2, _MM_SHUFFLE(3, 3, 2, 1)), mask3);	// 0, m12, m11, m10
-	row2 = _mm_shuffle_ps(t1, _mm_load_ss(&m[8]), _MM_SHUFFLE(1, 0, 3, 2));		// 0, m22, m21, m20
-}
-
-inline std::tuple<__m128, __m128, __m128, __m128> unpack4x3(const float* m)
-{
-	__m128 t0 = _mm_loadu_ps(&m[0]);
-	__m128 t1 = _mm_loadu_ps(&m[4]);
-	__m128 mask3 = detail::MASK3;
-	__m128 t2 = _mm_shuffle_ps(t0, t1, _MM_SHUFFLE(1, 0, 3, 3));
-	__m128 t3 = _mm_loadu_ps(&m[8]);
-	return { _mm_and_ps(t0, mask3), 											// 0, m02, m01, m00
-		_mm_and_ps(_mm_shuffle_ps(t2, t2, _MM_SHUFFLE(3, 3, 2, 1)), mask3),		// 0, m12, m11, m10
-		_mm_and_ps(_mm_shuffle_ps(t1, t3, _MM_SHUFFLE(0, 0, 3, 2)), mask3), 	// 0, m22, m21, m20
-		_mm_and_ps(_mm_shuffle_ps(t3, t3, _MM_SHUFFLE(3, 3, 2, 1)), mask3) }; 	// 0, m32, m31, m30
-}
-
-inline void unpack4x3(const float* m, __m128& row0, __m128& row1, __m128& row2, __m128& row3)
-{
-	__m128 t0 = _mm_loadu_ps(&m[0]);
-	__m128 t1 = _mm_loadu_ps(&m[4]);
-	__m128 mask3 = detail::MASK3;
-	__m128 t2 = _mm_shuffle_ps(t0, t1, _MM_SHUFFLE(1, 0, 3, 3));
-	__m128 t3 = _mm_loadu_ps(&m[8]);
-	row0 = _mm_and_ps(t0, mask3); 												// 0, m02, m01, m00
-	row1 = _mm_and_ps(_mm_shuffle_ps(t2, t2, _MM_SHUFFLE(3, 3, 2, 1)), mask3);	// 0, m12, m11, m10
-	row2 = _mm_and_ps(_mm_shuffle_ps(t1, t3, _MM_SHUFFLE(0, 0, 3, 2)), mask3); 	// 0, m22, m21, m20
-	row3 = _mm_and_ps(_mm_shuffle_ps(t3, t3, _MM_SHUFFLE(3, 3, 2, 1)), mask3); 	// 0, m32, m31, m30
-}
-
-inline std::tuple<__m128, __m128> transpose2x2(__m128 row0, __m128 row1)
+inline std::tuple<__m128, __m128> transpose(__m128 row0, __m128 row1)
 {
 	__m128 t = _mm_unpacklo_ps(row0, row1);
 	const __m128 zero = _mm_setzero_ps();
 	return { _mm_movelh_ps(t, zero), _mm_movehl_ps(zero, t) };
 }
 
-//inline void transpose2x2(__m128 row0, __m128 row1, __m128& col0, __m128& col1)
-//{
-//	__m128 t = _mm_unpacklo_ps(row0, row1);
-//	const __m128 zero = _mm_setzero_ps();
-//	col0 = _mm_movelh_ps(t, zero);
-//	col1 = _mm_movehl_ps(zero, t);
-//}
-
-inline std::tuple<__m128, __m128, __m128> transpose3x3(__m128 row0, __m128 row1, __m128 row2)
+inline std::tuple<__m128, __m128, __m128> transpose(__m128 row0, __m128 row1, __m128 row2)
 {
 	const __m128 row3 = _mm_setzero_ps();
 	__m128 t0 = _mm_shuffle_ps(row0, row1, 0x44);
@@ -532,19 +485,7 @@ inline std::tuple<__m128, __m128, __m128> transpose3x3(__m128 row0, __m128 row1,
 	return { _mm_shuffle_ps(t0, t1, 0x88), _mm_shuffle_ps(t0, t1, 0xDD), _mm_shuffle_ps(t2, t3, 0x88) };
 }
 
-//inline void transpose3x3(__m128 row0, __m128 row1, __m128 row2, __m128& col0, __m128& col1, __m128& col2)
-//{
-//	const __m128 row3 = _mm_setzero_ps();
-//	__m128 t0 = _mm_shuffle_ps(row0, row1, 0x44);
-//	__m128 t2 = _mm_shuffle_ps(row0, row1, 0xEE);
-//	__m128 t1 = _mm_shuffle_ps(row2, row3, 0x44);
-//	__m128 t3 = _mm_shuffle_ps(row2, row3, 0xEE);
-//	col0 = _mm_shuffle_ps(t0, t1, 0x88);
-//	col1 = _mm_shuffle_ps(t0, t1, 0xDD);
-//	col2 = _mm_shuffle_ps(t2, t3, 0x88);
-//}
-
-inline std::tuple<__m128, __m128, __m128, __m128> transpose4x4(__m128 row0, __m128 row1, __m128 row2, __m128 row3)
+inline std::tuple<__m128, __m128, __m128, __m128> transpose(__m128 row0, __m128 row1, __m128 row2, __m128 row3)
 {
 	__m128 t0 = _mm_shuffle_ps(row0, row1, 0x44);
 	__m128 t2 = _mm_shuffle_ps(row0, row1, 0xEE);
@@ -553,24 +494,7 @@ inline std::tuple<__m128, __m128, __m128, __m128> transpose4x4(__m128 row0, __m1
 	return { _mm_shuffle_ps(t0, t1, 0x88), _mm_shuffle_ps(t0, t1, 0xDD), _mm_shuffle_ps(t2, t3, 0x88), _mm_shuffle_ps(t2, t3, 0xDD) };
 }
 
-//inline void transpose4x4(__m128 row0, __m128 row1, __m128 row2, __m128 row3, __m128& col0, __m128& col1, __m128& col2, __m128& col3)
-//{
-//	__m128 t0 = _mm_shuffle_ps(row0, row1, 0x44);
-//	__m128 t2 = _mm_shuffle_ps(row0, row1, 0xEE);
-//	__m128 t1 = _mm_shuffle_ps(row2, row3, 0x44);
-//	__m128 t3 = _mm_shuffle_ps(row2, row3, 0xEE);
-//	col0 = _mm_shuffle_ps(t0, t1, 0x88);
-//	col1 = _mm_shuffle_ps(t0, t1, 0xDD);
-//	col2 = _mm_shuffle_ps(t2, t3, 0x88);
-//	col3 = _mm_shuffle_ps(t2, t3, 0xDD);
-//}
-
-inline float toFloat/*extract*/(__m128 s)
-{
-	return _mm_cvtss_f32(s);
-}
-
-template<int I>
+template<int I = 0>
 	requires ((I & ~3) == 0)
 inline float extract(__m128 v)
 {
@@ -580,22 +504,19 @@ inline float extract(__m128 v)
 		return _mm_cvtss_f32(_mm_shuffle_ps(v, v, _MM_SHUFFLE(I, I, I, I)));
 }
 
-inline __m128 cutoff1(__m128 x)
+template<int N = 1>
+	requires ((N >= 1) && (N <= 3))
+inline __m128 cutoff(__m128 v)
 {
-	return _mm_and_ps(x, detail::MASK1);
+	if constexpr (N == 1)
+		return _mm_and_ps(v, detail::MASK1);
+	else if constexpr (N == 2)
+		return _mm_movelh_ps(v, _mm_setzero_ps());
+	else //if constexpr (N == 3)
+		return _mm_and_ps(v, detail::MASK3);
 }
 
-inline __m128 cutoff2(__m128 xy)
-{
-	return _mm_movelh_ps(xy, _mm_setzero_ps());
-}
-
-inline __m128 cutoff3(__m128 xyz)
-{
-	return _mm_and_ps(xyz, detail::MASK3);
-}
-
-template<int I>
+template<int I = 0>
 	requires ((I & ~3) == 0)
 inline __m128 insert(float s, __m128 v)
 {
@@ -611,34 +532,35 @@ inline __m128 insert(float s, __m128 v)
 #endif
 }
 
-template<int I>
-	requires ((I & ~3) == 0)
-inline __m128 insert1(__m128 x, __m128 v)
+template<int I = 0, int N = 1>
+	requires (((I & ~3) == 0) && (N == 1)) || ((I == 0) && (N >= 2) && (N <= 3))
+inline __m128 insert(__m128 u, __m128 v)
 {
-	if constexpr (I == 0)
-		return _mm_move_ss(v, x);
-	else
+	if constexpr (N == 1)
+	{
+		if constexpr (I == 0)
+			return _mm_move_ss(v, u);
+		else
 #if (SIMD_SSE >= 4)
-		return _mm_insert_ps(v, x, I << 4); // SSE 4.1
+			return _mm_insert_ps(v, u, I << 4); // SSE 4.1
 #else
-		return _mm_or_ps(_mm_andnot_ps(detail::COMPONENT_MASKS[I], v),
-			_mm_shuffle_ps(x, x, _MM_SHUFFLE(1, 1, 1, 1) ^ (1 << (I + I))));
+			return _mm_or_ps(_mm_andnot_ps(detail::COMPONENT_MASKS[I], v),
+				_mm_shuffle_ps(u, u, _MM_SHUFFLE(1, 1, 1, 1) ^ (1 << (I + I))));
 #endif
-}
-
-inline __m128 insert2(__m128 xy, __m128 v)
-{
-	return _mm_shuffle_ps(xy, v, _MM_SHUFFLE(3, 2, 1, 0));
-}
-
-inline __m128 insert3(__m128 xyz, __m128 v)
-{
+	}
+	else if constexpr (N == 2) // #TODO Support I == 1, 2
+	{
+		return _mm_shuffle_ps(u, v, _MM_SHUFFLE(3, 2, 1, 0));
+	}
+	else //if constexpr (N == 3) // #TODO Support I == 1
+	{
 #if (SIMD_SSE >= 4)
-	return _mm_blendv_ps(v, xyz, detail::MASK3); // SSE 4.1
+		return _mm_blendv_ps(v, u, detail::MASK3); // SSE 4.1
 #else
-	const __m128 mask3 = detail::MASK3;
-	return _mm_or_ps(_mm_and_ps(mask3, xyz), _mm_andnot_ps(mask3, v));
+		const __m128 mask3 = detail::MASK3;
+		return _mm_or_ps(_mm_and_ps(mask3, u), _mm_andnot_ps(mask3, v));
 #endif
+	}
 }
 
 inline __m128 select(__m128 b, __m128 v1, __m128 v2) // b ? v1 : v2
@@ -671,21 +593,21 @@ inline __m128 broadcast(__m128 v)
 //	return _mm_shuffle_ps(v, v, _MM_SHUFFLE(index, index, index, index));
 //}
 
-template<int M>
-	requires ((M & ~0xFF) == 0)
-inline __m128 swizzle(__m128 v)
-{
-	if constexpr (M == _MM_SHUFFLE(1, 1, 0, 0))
-		return _mm_unpacklo_ps(v, v);
-	else if constexpr (M == _MM_SHUFFLE(3, 3, 2, 2))
-		return _mm_unpackhi_ps(v, v);
-	if constexpr (M == _MM_SHUFFLE(1, 0, 1, 0))
-		return _mm_movelh_ps(v, v);
-	else if constexpr (M == _MM_SHUFFLE(3, 2, 3, 2))
-		return _mm_movehl_ps(v, v);
-	else
-		return _mm_shuffle_ps(v, v, M);
-}
+// template<int M>
+// 	requires ((M & ~0xFF) == 0)
+// inline __m128 swizzle(__m128 v)
+// {
+// 	if constexpr (M == _MM_SHUFFLE(1, 1, 0, 0))
+// 		return _mm_unpacklo_ps(v, v);
+// 	else if constexpr (M == _MM_SHUFFLE(3, 3, 2, 2))
+// 		return _mm_unpackhi_ps(v, v);
+// 	if constexpr (M == _MM_SHUFFLE(1, 0, 1, 0))
+// 		return _mm_movelh_ps(v, v);
+// 	else if constexpr (M == _MM_SHUFFLE(3, 2, 3, 2))
+// 		return _mm_movehl_ps(v, v);
+// 	else
+// 		return _mm_shuffle_ps(v, v, M);
+// }
 
 //template<int A, int B, int C, int D>
 //	requires (((A & ~3) == 0) && ((B & ~3) == 0) && ((C & ~3) == 0) && ((D & ~3) == 0))
@@ -694,21 +616,37 @@ inline __m128 swizzle(__m128 v)
 //	return _mm_shuffle_ps(v, v, _MM_SHUFFLE(D, C, B, A));
 //}
 
+// template<int A, int B, int C, int D>
+// 	requires ((A >= -4) && (A < 4) && (B >= -4) && (B < 4) && (C >= -4) && (C < 4) && (D >= -4) && (D < 4))
+// inline __m128 swizzle(__m128 v)
+// {
+// 	if constexpr ((A < 0) || (B < 0) || (C < 0) || (D < 0))
+// 	{
+// 		if constexpr ((((A < 0) ? ~A : A) != 0) || (((B < 0) ? ~B : B) != 1) || (((C < 0) ? ~C : C) != 2) || (((D < 0) ? ~D : D) != 3))
+// 		{
+// 			_mm_xor_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE((D < 0) ? ~D : D, (C < 0) ? ~C : C, (B < 0) ? ~B : B, (A < 0) ? ~A : A)),
+// 				bits<__m128, (int)(A < 0) << 31, (int)(B < 0) << 31, (int)(C < 0) << 31, (int)(D < 0) << 31>());
+// 		}
+// 		else
+// 			_mm_xor_ps(v, bits<__m128, (int)(A < 0) << 31, (int)(B < 0) << 31, (int)(C < 0) << 31, (int)(D < 0) << 31>());
+// 	}
+// 	else if constexpr ((A == 0) && (B == 0) && (C == 1) && (D == 1))
+// 		return _mm_unpacklo_ps(v, v);
+// 	else if constexpr ((A == 2) && (B == 2) && (C == 3) && (D == 3))
+// 		return _mm_unpackhi_ps(v, v);
+// 	else if constexpr ((A == 0) && (B == 1) && (C == 0) && (D == 1))
+// 		return _mm_movelh_ps(v, v);
+// 	else if constexpr ((A == 2) && (B == 3) && (C == 2) && (D == 3))
+// 		return _mm_movehl_ps(v, v);
+// 	else
+// 		return _mm_shuffle_ps(v, v, _MM_SHUFFLE(D, C, B, A));
+// }
+
 template<int A, int B, int C, int D>
-	requires ((A >= -4) && (A < 4) && (B >= -4) && (B < 4) && (C >= -4) && (C < 4) && (D >= -4) && (D < 4))
+	requires ((A >= 0) && (A < 4) && (B >= 0) && (B < 4) && (C >= 0) && (C < 4) && (D >= 0) && (D < 4))
 inline __m128 swizzle(__m128 v)
 {
-	if constexpr ((A < 0) || (B < 0) || (C < 0) || (D < 0))
-	{
-		if constexpr ((((A < 0) ? ~A : A) != 0) || (((B < 0) ? ~B : B) != 1) || (((C < 0) ? ~C : C) != 2) || (((D < 0) ? ~D : D) != 3))
-		{
-			_mm_xor_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE((D < 0) ? ~D : D, (C < 0) ? ~C : C, (B < 0) ? ~B : B, (A < 0) ? ~A : A)),
-				constant4i<__m128, (int)(A < 0) << 31, (int)(B < 0) << 31, (int)(C < 0) << 31, (int)(D < 0) << 31>());
-		}
-		else
-			_mm_xor_ps(v, constant4i<__m128, (int)(A < 0) << 31, (int)(B < 0) << 31, (int)(C < 0) << 31, (int)(D < 0) << 31>());
-	}
-	else if constexpr ((A == 0) && (B == 0) && (C == 1) && (D == 1))
+	if constexpr ((A == 0) && (B == 0) && (C == 1) && (D == 1))
 		return _mm_unpacklo_ps(v, v);
 	else if constexpr ((A == 2) && (B == 2) && (C == 3) && (D == 3))
 		return _mm_unpackhi_ps(v, v);
@@ -725,38 +663,45 @@ inline __m128 swizzle(__m128 v)
 //	return _mm_shuffle_ps(v, v, mask);
 //}
 
+// template<int A, int B, int C, int D>
+// 	requires ((A >= 0) && (A < 4) && (B >= 0) && (B < 4) && (C >= 0) && (C < 4) && (D >= 0) && (D < 4))
+// inline __m128 swizzle(__m128 u, __m128 v)
+// {
+// 	return _mm_shuffle_ps(u, v, _MM_SHUFFLE(D, C, B, A));
+// }
+
 //inline __m128 reverse(__m128 v)
 //{
 //	return _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 1, 2, 3));
 //}
 
-inline __m128 not4(__m128 v)
+inline __m128 logicalNot(__m128 v)
 {
-	return _mm_xor_ps(v, constant4i<__m128, -1, -1, -1, -1>()/*_mm_castsi128_ps(_mm_set1_epi32(-1))*/);
+	return _mm_xor_ps(v, bits<__m128, -1, -1, -1, -1>()/*_mm_castsi128_ps(_mm_set1_epi32(-1))*/);
 }
 
 //template<bool X, bool Y, bool Z, bool W>
-//inline __m128 not(__m128 v)
+//inline __m128 logicalNot(__m128 v)
 //{
 //	return _mm_xor_ps(v, _mm_castsi128_ps(_mm_setr_epi32(-(int)X, -(int)Y, -(int)Z, -(int)W)));
 //}
 
-//inline __m128 not(__m128 v, __m128 mask)
+//inline __m128 logicalNot(__m128 v, __m128 mask)
 //{
 //	return _mm_xor_ps(v, mask);
 //}
 
-inline __m128 and4(__m128 v1, __m128 v2)
+inline __m128 logicalAnd(__m128 v1, __m128 v2)
 {
 	return _mm_and_ps(v1, v2);
 }
 
-inline __m128 or4(__m128 v1, __m128 v2)
+inline __m128 logicalOr(__m128 v1, __m128 v2)
 {
 	return _mm_or_ps(v1, v2);
 }
 
-//inline __m128 andNot4(__m128 v1, __m128 v2)
+//inline __m128 logicalAndNot(__m128 v1, __m128 v2)
 //{
 //	return _mm_andnot_ps(v2, v1);
 //}
@@ -845,61 +790,55 @@ inline __m128 greaterThanEqual(__m128 v1, __m128 v2)
 	return _mm_cmpge_ps(v1, v2);
 }
 
-inline __m128 min4(__m128 v1, __m128 v2)
+inline __m128 min(__m128 v1, __m128 v2)
 {
 	return _mm_min_ps(v1, v2);
 }
 
-inline __m128 max4(__m128 v1, __m128 v2)
+inline __m128 max(__m128 v1, __m128 v2)
 {
 	return _mm_max_ps(v1, v2);
 }
 
-inline __m128 neg1(__m128 v)
+template<int N = 4>
+	requires ((N >= 1) && (N <= 4))
+inline __m128 negate(__m128 v)
 {
-	return _mm_xor_ps(v, detail::SIGN1);
+	if constexpr (N == 1)
+		return _mm_xor_ps(v, detail::SIGN1);
+	else if constexpr (N == 2)
+		return _mm_xor_ps(v, detail::SIGN2);
+	else if constexpr (N == 3)
+		return _mm_xor_ps(v, detail::SIGN3);
+	else //if constexpr (N == 4)
+		return _mm_xor_ps(v, detail::SIGN4/*_mm_castsi128_ps(_mm_set1_epi32(0x80000000))*/);
 }
 
-inline __m128 neg2(__m128 v)
-{
-	return _mm_xor_ps(v, detail::SIGN2);
-}
-
-inline __m128 neg3(__m128 v)
-{
-	return _mm_xor_ps(v, detail::SIGN3);
-}
-
-inline __m128 neg4(__m128 v)
-{
-	return _mm_xor_ps(v, detail::SIGN4/*_mm_castsi128_ps(_mm_set1_epi32(0x80000000))*/);
-}
-
-//inline __m128 neg(__m128 v, __m128 mask)
+//inline __m128 negate(__m128 v, __m128 mask)
 //{
 //	return _mm_xor_ps(v, _mm_and_ps(detail::SIGN4/*_mm_castsi128_ps(_mm_set1_epi32(0x80000000))*/, mask));
 //}
 
 //template<bool X, bool Y, bool Z, bool W>
-//inline __m128 neg(__m128 v)
+//inline __m128 negate(__m128 v)
 //{
-//	return _mm_xor_ps(v, constant4i<__m128, (int)X << 31, (int)Y << 31, (int)Z << 31, (int)W << 31>()/*_mm_castsi128_ps(_mm_setr_epi32((int)X << 31, (int)Y << 31, (int)Z << 31, (int)W << 31))*/);
+//	return _mm_xor_ps(v, bits<__m128, (int)X << 31, (int)Y << 31, (int)Z << 31, (int)W << 31>()/*_mm_castsi128_ps(_mm_setr_epi32((int)X << 31, (int)Y << 31, (int)Z << 31, (int)W << 31))*/);
 //}
 
 //template<int I>
 //	requires ((I & ~3) == 0)
-//inline __m128 neg(__m128 v)
+//inline __m128 negate(__m128 v)
 //{
 //	return _mm_xor_ps(v, detail::COMPONENT_SIGNS[I]);
 //}
 
 template<typename M>
-inline __m128 neg(__m128 v)
+inline __m128 negate(__m128 v)
 {
-	return _mm_xor_ps(v, constant4i<__m128, M::X_SIGN, M::Y_SIGN, M::Z_SIGN, M::W_SIGN>()/*_mm_castsi128_ps(_mm_setr_epi32(M::X_SIGN, M::Y_SIGN, M::Z_SIGN, M::W_SIGN))*/);
+	return _mm_xor_ps(v, bits<__m128, M::X_SIGN, M::Y_SIGN, M::Z_SIGN, M::W_SIGN>()/*_mm_castsi128_ps(_mm_setr_epi32(M::X_SIGN, M::Y_SIGN, M::Z_SIGN, M::W_SIGN))*/);
 }
 
-inline __m128 abs4(__m128 v)
+inline __m128 abs(__m128 v)
 {
 	return _mm_andnot_ps(detail::SIGN4, v);
 }
@@ -909,17 +848,17 @@ inline __m128 normalize(__m128 v) // -0 -> +0
 	return _mm_add_ps(v, _mm_setzero_ps());
 }
 
-inline __m128 add4(__m128 v1, __m128 v2)
+inline __m128 add(__m128 v1, __m128 v2)
 {
 	return _mm_add_ps(v1, v2);
 }
 
-inline __m128 sub4(__m128 v1, __m128 v2)
+inline __m128 subtract(__m128 v1, __m128 v2)
 {
 	return _mm_sub_ps(v1, v2);
 }
 
-inline __m128 subAdd4(__m128 v1, __m128 v2)
+inline __m128 subAdd(__m128 v1, __m128 v2)
 {
 #if (SIMD_SSE >= 3)
 	return _mm_addsub_ps(v1, v2);
@@ -928,48 +867,58 @@ inline __m128 subAdd4(__m128 v1, __m128 v2)
 #endif
 }
 
-inline __m128 mul4(__m128 v1, __m128 v2)
+inline __m128 multiply(__m128 v1, __m128 v2)
 {
 	return _mm_mul_ps(v1, v2);
 }
 
-inline __m128 div2(__m128 v1, __m128 v2)
+template<int N = 4>
+	requires ((N >= 2) && (N <= 4))
+inline __m128 divide(__m128 v1, __m128 v2)
 {
-	__m128 t = _mm_movelh_ps(v2, detail::ONE4);
-	return _mm_div_ps(v1, t);
-}
-
-inline __m128 div3(__m128 v1, __m128 v2)
-{
+	if constexpr (N == 2)
+	{
+		__m128 t = _mm_movelh_ps(v2, detail::ONE4);
+		return _mm_div_ps(v1, t);
+	}
+	else if constexpr (N == 3)
+	{
 #if (SIMD_SSE >= 4)
-	__m128 t = _mm_blendv_ps(detail::ZERO3_ONE1, v2, detail::MASK3); // SSE 4.1
+		__m128 t = _mm_blendv_ps(detail::ZERO3_ONE1, v2, detail::MASK3); // SSE 4.1
 #else
-	__m128 t = _mm_or_ps(_mm_and_ps(detail::MASK3, v2), detail::ZERO3_ONE1);
+		__m128 t = _mm_or_ps(_mm_and_ps(detail::MASK3, v2), detail::ZERO3_ONE1);
 #endif
-	return _mm_div_ps(v1, t);
+		return _mm_div_ps(v1, t);
+	}
+	else //if constexpr (N == 4)
+	{
+		return _mm_div_ps(v1, v2);
+	}
 }
 
-inline __m128 div4(__m128 v1, __m128 v2)
-{
-	return _mm_div_ps(v1, v2);
-}
-
-inline __m128 mulAdd4(__m128 v1, __m128 v2, __m128 v3)
+inline __m128 multiplyAdd(__m128 v1, __m128 v2, __m128 v3)
 {
 	return _mm_add_ps(_mm_mul_ps(v1, v2), v3);
 }
 
-inline __m128 mulSub4(__m128 v1, __m128 v2, __m128 v3)
+inline __m128 multiplySub(__m128 v1, __m128 v2, __m128 v3)
 {
 	return _mm_sub_ps(_mm_mul_ps(v1, v2), v3);
 }
 
-inline __m128 sqrt1(__m128 s)
+template<int N>
+	requires ((N == 1) || (N == 4))
+inline __m128 sqrt(__m128 s)
 {
-	return _mm_sqrt_ss(s);
+	if constexpr (N == 1)
+		return _mm_sqrt_ss(s);
+	else //if constexpr (N == 4)
+		return _mm_sqrt_ps(s);
 }
 
-inline __m128 rcpSqrtApprox1(__m128 s)
+template<int N>
+	requires ((N == 1) /*|| (N == 4)*/) // #TODO N == 4
+inline __m128 rcpSqrtApprox(__m128 s)
 {
 	__m128 b = _mm_rsqrt_ss(s);
 #if (SIMD_SSE >= 2)
@@ -984,87 +933,99 @@ inline __m128 rcpSqrtApprox1(__m128 s)
 	return _mm_mul_ss(_mm_mul_ss(/*half*/detail::HALF4, b), _mm_sub_ss(/*three*/detail::THREE4, _mm_mul_ss(_mm_mul_ss(s, b), b)));
 }
 
-inline __m128 hMin2(__m128 v)
+template<int N = 4>
+	requires ((N >= 2) && (N <= 4))
+inline __m128 hMin(__m128 v)
 {
-	return _mm_min_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 2, 0, 1)));
+	if constexpr (N == 2)
+	{
+		return _mm_min_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 2, 0, 1)));
+	}
+	else if constexpr (N == 3)
+	{
+		__m128 t = _mm_min_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 1, 0, 2)));
+		return _mm_min_ps(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
+	}
+	else //if constexpr (N == 4)
+	{
+		__m128 t = _mm_min_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 1, 0, 3)));
+		return _mm_min_ps(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 0, 3, 2)));
+	}
 }
 
-inline __m128 hMin3(__m128 v)
+template<int N = 4>
+	requires ((N >= 2) && (N <= 4))
+inline __m128 hMax(__m128 v)
 {
-	__m128 t = _mm_min_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 1, 0, 2)));
-	return _mm_min_ps(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
+	if constexpr (N == 2)
+	{
+		return _mm_max_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 2, 0, 1)));
+	}
+	else if constexpr (N == 3)
+	{
+		__m128 t = _mm_max_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 1, 0, 2)));
+		return _mm_max_ps(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
+	}
+	else //if constexpr (N == 4)
+	{
+		__m128 t = _mm_max_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 1, 0, 3)));
+		return _mm_max_ps(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 0, 3, 2)));
+	}
 }
 
-inline __m128 hMin4(__m128 v)
+template<int N = 4>
+	requires ((N >= 2) && (N <= 4))
+inline __m128 hAdd(__m128 v)
 {
-	__m128 t = _mm_min_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 1, 0, 3)));
-	return _mm_min_ps(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 0, 3, 2)));
+	if constexpr (N == 2)
+	{
+		return _mm_add_ss(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
+	}
+	else if constexpr (N == 3)
+	{
+		__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
+		return _mm_add_ss(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
+	}
+	else //if constexpr (N == 4)
+	{
+		__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
+		return _mm_add_ss(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 1, 1, 1)));
+	}
 }
 
-inline __m128 hMax2(__m128 v)
+template<int N = 4>
+	requires ((N >= 2) && (N <= 4))
+inline __m128 dot(__m128 v1, __m128 v2)
 {
-	return _mm_max_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 2, 0, 1)));
-}
-
-inline __m128 hMax3(__m128 v)
-{
-	__m128 t = _mm_max_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 1, 0, 2)));
-	return _mm_max_ps(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
-}
-
-inline __m128 hMax4(__m128 v)
-{
-	__m128 t = _mm_max_ps(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 1, 0, 3)));
-	return _mm_max_ps(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 0, 3, 2)));
-}
-
-inline __m128 hAdd2(__m128 v)
-{
-	return _mm_add_ss(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
-}
-
-inline __m128 hAdd3(__m128 v)
-{
-	__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
-	return _mm_add_ss(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
-}
-
-inline __m128 hAdd4(__m128 v)
-{
-	__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
-	return _mm_add_ss(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 1, 1, 1)));
-}
-
-inline __m128 dot2(__m128 v1, __m128 v2)
-{
+	if constexpr (N == 2)
+	{
 #if (SIMD_SSE >= 4)
-	return _mm_dp_ps(v1, v2, 0x31); // SSE 4.1
+		return _mm_dp_ps(v1, v2, 0x31); // SSE 4.1
 #else
-	__m128 v = _mm_mul_ps(v1, v2);
-	return _mm_add_ss(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
+		__m128 v = _mm_mul_ps(v1, v2);
+		return _mm_add_ss(v, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
 #endif
-}
-
-inline __m128 dot3(__m128 v1, __m128 v2)
-{
+	}
+	else if constexpr (N == 3)
+	{
 #if (SIMD_SSE >= 4)
-	return _mm_dp_ps(v1, v2, 0x71/*0x77*/); // SSE 4.1
+		return _mm_dp_ps(v1, v2, 0x71/*0x77*/); // SSE 4.1
 #else
-	__m128 v = _mm_mul_ps(v1, v2);
-	__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
-	return _mm_add_ss(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
+		__m128 v = _mm_mul_ps(v1, v2);
+		__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
+		return _mm_add_ss(t, _mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)));
 #endif
-}
-
-inline __m128 dot4(__m128 v1, __m128 v2)
-{
+	}
+	else //if constexpr (N == 4)
+	{
 #if (SIMD_SSE >= 4)
-	return _mm_dp_ps(v1, v2, 0xF1/*0xFF*/); // SSE 4.1
+		return _mm_dp_ps(v1, v2, 0xF1/*0xFF*/); // SSE 4.1
 #else
-	__m128 v = _mm_mul_ps(v1, v2);
-	__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
-	return _mm_add_ss(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 1, 1, 1)));
+		__m128 v = _mm_mul_ps(v1, v2);
+		__m128 t = _mm_add_ps(v, _mm_movehl_ps(v, v));
+		return _mm_add_ss(t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 1, 1, 1)));
 #endif
+	}
 }
 
 inline __m128 floor(__m128 v)
