@@ -23,6 +23,16 @@ template<>
 struct Storage<float, 4> { using Type = float4; };
 #endif
 
+#if SIMD_HAS_DOUBLE2
+template<>
+struct Storage<double, 2> { using Type = double2; };
+#endif
+
+#if SIMD_HAS_DOUBLE4
+template<>
+struct Storage<double, 4> { using Type = double4; };
+#endif
+
 #if SIMD_HAS_INT4
 template<>
 struct Storage<int, 4> { using Type = int4; };
@@ -41,8 +51,9 @@ struct alignas(sizeof(T)*N) Tuple
 	struct alignas(sizeof(T)*N) Bool
 	{
 		Bool() = default;
-        explicit Bool(bool s) noexcept { value = set4/*set*/(s); } // #FIXME Support N != 4
-        Bool(bool x, bool y, bool z, bool w) noexcept requires (N == 4) { value = set4/*set*/(x, y, z, w); }
+        explicit Bool(bool s) noexcept { value = set<DataType, N>(s); }
+        Bool(bool x, bool y) noexcept requires (N == 2) { value = set<DataType>(x, y); }
+        Bool(bool x, bool y, bool z, bool w) noexcept requires (N == 4) { value = set<DataType>(x, y, z, w); }
 		Bool(DataType b) noexcept : value(b) {}
 
 		operator DataType() const noexcept { return value; }
@@ -52,8 +63,9 @@ struct alignas(sizeof(T)*N) Tuple
 	};
 
 	Tuple() = default;
-	explicit Tuple(T s) noexcept { value = set4/*set*/(s); } // #FIXME Support N != 4
-	Tuple(T x, T y, T z, T w) noexcept requires (N == 4) { value = set4/*set*/(x, y, z, w); }
+	explicit Tuple(T s) noexcept { value = set<DataType, N>(s); }
+	Tuple(T x, T y) noexcept requires (N == 2) { value = set<DataType>(x, y); }
+	Tuple(T x, T y, T z, T w) noexcept requires (N == 4) { value = set<DataType>(x, y, z, w); }
 	Tuple(DataType v) noexcept : value(v) {}
 
 	operator DataType() const noexcept { return value; }
@@ -61,25 +73,29 @@ struct alignas(sizeof(T)*N) Tuple
 	Tuple operator+() const noexcept { return *this; }
 	Tuple operator-() const noexcept { return Tuple(neg(value)); }
 	Tuple& operator+=(const Tuple v) noexcept { value = add(value, v); return *this; }
-	Tuple& operator-=(const Tuple v) noexcept { value = subtract(value, v); return *this; }
-	Tuple& operator*=(const Tuple v) noexcept { value = multiply(value, v); return *this; }
-	Tuple& operator*=(T s) noexcept { value = multiply(value, set4/*set*/(s)); return *this; } // #FIXME Support N != 4
-	Tuple& operator/=(const Tuple v) noexcept { value = divide(value, v); return *this; }
-	Tuple& operator/=(T s) noexcept { value = divide(value, set4/*set*/(s)); return *this; } // #FIXME Support N != 4
+	Tuple& operator-=(const Tuple v) noexcept { value = sub(value, v); return *this; }
+	Tuple& operator*=(const Tuple v) noexcept { value = mul(value, v); return *this; }
+	Tuple& operator*=(T s) noexcept { value = mul(value, set<DataType, N>(s)); return *this; }
+	Tuple& operator/=(const Tuple v) noexcept { value = div(value, v); return *this; }
+	Tuple& operator/=(T s) noexcept { value = div(value, set<DataType, N>(s)); return *this; }
 	Bool operator<(const Tuple& v) const noexcept { return Bool(less(value, v)); }
 	Bool operator<=(const Tuple& v) const noexcept { return Bool(lessEqual(value, v)); }
 	Bool operator>(const Tuple& v) const noexcept { return Bool(greater(value, v)); }
 	Bool operator>=(const Tuple& v) const noexcept { return Bool(greaterEqual(value, v)); }
 	Bool operator==(const Tuple& v) const noexcept { return Bool(equal(value, v)); }
-	Bool operator!=(const Tuple& v) const noexcept { return Bool(not4(equal(value, v))); }
+	Bool operator!=(const Tuple& v) const noexcept { return Bool(logicalNot(equal(value, v))); }
 
 	//template<std::size_t I> T& get() noexcept; // #TODO
 	template<std::size_t I> T get() const noexcept { return extract<I>(value); }
 
-	T x() const noexcept { return extract<X>(value); }
-	T y() const noexcept { return extract<Y>(value); }
-	T z() const noexcept { return extract<Z>(value); }
-	T w() const noexcept { return extract<W>(value); }
+	T x() const noexcept requires (N >= 1) { return extract<X>(value); }
+	T y() const noexcept requires (N >= 2) { return extract<Y>(value); }
+	T z() const noexcept requires (N >= 3) { return extract<Z>(value); }
+	T w() const noexcept requires (N >= 4) { return extract<W>(value); }
+	Tuple xx() const noexcept requires (N == 2) { return Tuple(broadcast<X>(value)); }
+	Tuple yy() const noexcept requires (N == 2) { return Tuple(broadcast<Y>(value)); }
+	Tuple xy() const noexcept requires (N == 2) { return Tuple(swizzle<X, Y>(value)); }
+	Tuple yx() const noexcept requires (N == 2) { return Tuple(swizzle<Y, X>(value)); }
 	Tuple xxxx() const noexcept requires (N == 4) { return Tuple(broadcast<X>(value)); }
 	Tuple yyyy() const noexcept requires (N == 4) { return Tuple(broadcast<Y>(value)); }
  	Tuple zzzz() const noexcept requires (N == 4) { return Tuple(broadcast<Z>(value)); }
@@ -157,49 +173,49 @@ template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator-(const Tuple<T, N> v1, const Tuple<T, N> v2) noexcept 
 { 
-	return Tuple<T, N>(subtract(v1, v2)); 
+	return Tuple<T, N>(sub(v1, v2)); 
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(const Tuple<T, N> v1, const Tuple<T, N> v2) noexcept 
 { 
-	return Tuple<T, N>(multiply(v1, v2)); 
+	return Tuple<T, N>(mul(v1, v2)); 
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(T s, const Tuple<T, N> v) noexcept 
 { 
-	return Tuple<T, N>(multiply(set4(s), v)); // #FIXME Support N != 4
+	return Tuple<T, N>(mul(set<DataType, N>(s), v));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(const Tuple<T, N> v, T s) noexcept 
 { 
-	return Tuple<T, N>(multiply(v, set4(s))); // #FIXME Support N != 4
+	return Tuple<T, N>(mul(v, set<DataType, N>(s)));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(const Tuple<T, N> v1, const Tuple<T, N> v2) noexcept 
 { 
-	return Tuple<T, N>(divide(v1, v2)); 
+	return Tuple<T, N>(div(v1, v2)); 
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(T s, const Tuple<T, N> v) noexcept 
 { 
-	return Tuple<T, N>(divide(set4(s), v)); // #FIXME Support N != 4
+	return Tuple<T, N>(div(set<DataType, N>(s), v));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(const Tuple<T, N> v, T s) noexcept 
 { 
-	return Tuple<T, N>(divide(v, set4(s))); // #FIXME Support N != 4
+	return Tuple<T, N>(div(v, set<DataType, N>(s)));
 }
 
 //template<std::size_t I, typename T, int N>
@@ -217,6 +233,14 @@ inline T get(const Tuple<T, N>& v) noexcept
 
 #if SIMD_HAS_FLOAT4
 using Float4 = templates::Tuple<float, 4>;
+#endif
+
+#if SIMD_HAS_DOUBLE2
+using Double2 = templates::Tuple<double, 2>;
+#endif
+
+#if SIMD_HAS_DOUBLE4
+using Double4 = templates::Tuple<double, 4>;
 #endif
 
 #if SIMD_HAS_INT4
