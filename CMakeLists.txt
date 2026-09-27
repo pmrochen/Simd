@@ -23,9 +23,11 @@ set(SIMD_HEADERS
 	Include/Simd/AvxIntrinsics.hpp
 	Include/Simd/Functional.hpp
 	Include/Simd/Intrinsics.hpp
+	Include/Simd/NeonIntrinsics.hpp
 	Include/Simd/Simd.hpp
 	Include/Simd/SseIntrinsics.hpp
 	Include/Simd/Tuple.hpp
+	Include/Simd/WasmIntrinsics.hpp
 )
 
 target_sources(${SIMD_LIB_NAME}
