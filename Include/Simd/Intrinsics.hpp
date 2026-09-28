@@ -56,6 +56,33 @@ using namespace avx;
 
 //#endif
 
+namespace templates {
+
+template<typename T, int N>
+struct Storage;
+
+#if SIMD_HAS_FLOAT4
+template<>
+struct Storage<float, 4> { using Type = float4; };
+#endif
+
+#if SIMD_HAS_DOUBLE2
+template<>
+struct Storage<double, 2> { using Type = double2; };
+#endif
+
+#if SIMD_HAS_DOUBLE4
+template<>
+struct Storage<double, 4> { using Type = double4; };
+#endif
+
+#if SIMD_HAS_INT4
+template<>
+struct Storage<int, 4> { using Type = int4; };
+#endif
+
+} // namespace templates
+
 #if SIMD_HAS_DOUBLE2
 template<typename T> inline decltype(broadcast(T())) xx(T v) { return broadcast<X>(v); }
 template<typename T> inline decltype(broadcast(T())) yy(T v) { return broadcast<Y>(v); }
@@ -100,28 +127,32 @@ template<typename T> inline decltype(swizzle(T())) wzzz(T v) { return swizzle<W,
 template<typename T> inline decltype(swizzle(T())) wzyx(T v) { return swizzle<W, Z, Y, X>(v); }
 #endif
 
+#if SIMD_HAS_INT4 || SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE4
+template<typename T> inline decltype(zero<typename templates::Storage<T, 4>::Type>()) zero4() { return zero<typename templates::Storage<T, 4>::Type>(); }
+template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T())) set1(T s) { return set<typename templates::Storage<T, 4>::Type, 1>(s); }
+template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T())) set2(T s) { return set<typename templates::Storage<T, 4>::Type, 2>(s); }
+template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T())) set2(T x, T y) { return set<typename templates::Storage<T, 4>::Type>(x, y); }
+template<typename T> inline decltype(load<typename templates::Storage<T, 4>::Type>((const T*)nullptr)) load2(const T* v) { return load<typename templates::Storage<T, 4>::Type, 2>(v); }
+template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T())) set3(T s) { return set<typename templates::Storage<T, 4>::Type, 3>(s); }
+template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T(), T())) set3(T x, T y, T z) { return set<typename templates::Storage<T, 4>::Type>(x, y, z); }
+template<typename T> inline decltype(load<typename templates::Storage<T, 4>::Type>((const T*)nullptr)) load3(const T* v) { return load<typename templates::Storage<T, 4>::Type, 3>(v); }
+template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T())) set4(T s) { return set<typename templates::Storage<T, 4>::Type, 4>(s); }
+template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T(), T(), T())) set4(T x, T y, T z, T w) { return set<typename templates::Storage<T, 4>::Type>(x, y, z, w); }
+template<typename T> inline decltype(load<typename templates::Storage<T, 4>::Type>((const T*)nullptr)) load4(const T* v) { return load<typename templates::Storage<T, 4>::Type, 4>(v); }
+#endif
+
 #if SIMD_HAS_INT4 || SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE2 || SIMD_HAS_DOUBLE4
-template<typename T, typename U> inline decltype(set<T>(U())) set1(U s) { return set<T, 1>(s); }
 template<typename T> inline decltype(cutoff(T())) cutoff1(T v) { return cutoff<1>(v); }
 template<int I, typename T, typename U> inline decltype(insert(T(), U())) insert1(T u, U v) { return insert<I, 1>(u, v); }
-template<typename T, typename U> inline decltype(set<T>(U())) set2(U s) { return set<T, 2>(s); }
-template<typename T, typename U> inline decltype(set<T>(U(), U())) set2(U x, U y) { return set<T>(x, y); }
-template<typename T, typename U> inline decltype(load<T>((const U*)nullptr)) load2(const U* v) { return load<T, 2>(v); }
 template<typename T, typename U> inline void store2(T u, U* v) { store<2>(u, v); }
 template<typename T> inline decltype(cutoff(T())) cutoff2(T v) { return cutoff<2>(v); }
 template<typename T, typename U> inline decltype(insert(T(), U())) insert2(T u, U v) { return insert<0, 2>(u, v); }
 #endif
 
 #if SIMD_HAS_INT4 || SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE4
-template<typename T, typename U> inline decltype(set<T>(U())) set3(U s) { return set<T, 3>(s); }
-template<typename T, typename U> inline decltype(set<T>(U(), U(), U())) set3(U x, U y, U z) { return set<T>(x, y, z); }
-template<typename T, typename U> inline decltype(load<T>((const U*)nullptr)) load3(const U* v) { return load<T, 3>(v); }
 template<typename T, typename U> inline void store3(T u, U* v) { store<3>(u, v); }
 template<typename T> inline decltype(cutoff(T())) cutoff3(T v) { return cutoff<3>(v); }
 template<typename T, typename U> inline decltype(insert(T(), U())) insert3(T u, U v) { return insert<0, 3>(u, v); }
-template<typename T, typename U> inline decltype(set<T>(U())) set4(U s) { return set<T, 4>(s); }
-template<typename T, typename U> inline decltype(set<T>(U(), U(), U(), U())) set4(U x, U y, U z, U w) { return set<T>(x, y, z, w); }
-template<typename T, typename U> inline decltype(load<T>((const U*)nullptr)) load4(const U* v) { return load<T, 4>(v); }
 template<typename T, typename U> inline void store4(T u, U* v) { store<4>(u, v); }
 #endif
 

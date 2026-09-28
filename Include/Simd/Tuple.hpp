@@ -16,29 +16,6 @@ namespace simd {
 namespace templates {
 
 template<typename T, int N>
-struct Storage;
-
-#if SIMD_HAS_FLOAT4
-template<>
-struct Storage<float, 4> { using Type = float4; };
-#endif
-
-#if SIMD_HAS_DOUBLE2
-template<>
-struct Storage<double, 2> { using Type = double2; };
-#endif
-
-#if SIMD_HAS_DOUBLE4
-template<>
-struct Storage<double, 4> { using Type = double4; };
-#endif
-
-#if SIMD_HAS_INT4
-template<>
-struct Storage<int, 4> { using Type = int4; };
-#endif
-
-template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 struct alignas(sizeof(T)*N) Tuple
 {
