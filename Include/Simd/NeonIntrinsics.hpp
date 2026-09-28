@@ -164,27 +164,27 @@ inline bool any(uint32x4_t b)
 	return (bool)v;
 }
 
-inline float32x4_t equal(float32x4_t v1, float32x4_t v2)
+inline uint32x4_t equal(float32x4_t v1, float32x4_t v2)
 {
 	return vceqq_f32(v1, v2);
 }
 
-inline float32x4_t lessThan(float32x4_t v1, float32x4_t v2)
+inline uint32x4_t lessThan(float32x4_t v1, float32x4_t v2)
 {
 	return vcltq_f32(v1, v2);
 }
 
-inline float32x4_t lessThanEqual(float32x4_t v1, float32x4_t v2)
+inline uint32x4_t lessThanEqual(float32x4_t v1, float32x4_t v2)
 {
 	return vcleq_f32(v1, v2);
 }
 
-inline float32x4_t greaterThan(float32x4_t v1, float32x4_t v2)
+inline uint32x4_t greaterThan(float32x4_t v1, float32x4_t v2)
 {
 	return vcgtq_f32(v1, v2);
 }
 
-inline float32x4_t greaterThanEqual(float32x4_t v1, float32x4_t v2)
+inline uint32x4_t greaterThanEqual(float32x4_t v1, float32x4_t v2)
 {
 	return vcgeq_f32(v1, v2);
 }
