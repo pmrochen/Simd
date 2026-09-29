@@ -11,6 +11,7 @@
 #define SIMD_CALL
 #endif
 
+#include <concepts>
 #include "SseIntrinsics.hpp"
 #include "AvxIntrinsics.hpp"
 #include "NeonIntrinsics.hpp"
@@ -55,6 +56,9 @@ using namespace avx;
 #endif
 
 //#endif
+
+template<typename T>
+concept Arithmetic = (std::floating_point<T> || std::integral<T>);
 
 namespace templates {
 
@@ -128,18 +132,21 @@ template<typename T> inline decltype(swizzle<W, Z, Y, X>(T())) wzyx(T v) { retur
 #endif
 
 #if SIMD_HAS_INT4 || SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE4
-template<typename T> inline decltype(zero<typename templates::Storage<T, 4>::Type>()) zero4() { return zero<typename templates::Storage<T, 4>::Type>(); }
-template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type, 1>(T())) set1(T s) { return set<typename templates::Storage<T, 4>::Type, 1>(s); }
-template<typename T> inline decltype(load<typename templates::Storage<T, 4>::Type, 1>((const T*)nullptr)) load1(const T* v) { return load<typename templates::Storage<T, 4>::Type, 1>(v); }
-template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type, 2>(T())) set2(T s) { return set<typename templates::Storage<T, 4>::Type, 2>(s); }
-template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T())) set2(T x, T y) { return set<typename templates::Storage<T, 4>::Type>(x, y); }
-template<typename T> inline decltype(load<typename templates::Storage<T, 4>::Type, 2>((const T*)nullptr)) load2(const T* v) { return load<typename templates::Storage<T, 4>::Type, 2>(v); }
-template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type, 3>(T())) set3(T s) { return set<typename templates::Storage<T, 4>::Type, 3>(s); }
-template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T(), T())) set3(T x, T y, T z) { return set<typename templates::Storage<T, 4>::Type>(x, y, z); }
-template<typename T> inline decltype(load<typename templates::Storage<T, 4>::Type, 3>((const T*)nullptr)) load3(const T* v) { return load<typename templates::Storage<T, 4>::Type, 3>(v); }
-template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type, 4>(T())) set4(T s) { return set<typename templates::Storage<T, 4>::Type, 4>(s); }
-template<typename T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T(), T(), T())) set4(T x, T y, T z, T w) { return set<typename templates::Storage<T, 4>::Type>(x, y, z, w); }
-template<typename T> inline decltype(load<typename templates::Storage<T, 4>::Type, 4>((const T*)nullptr)) load4(const T* v) { return load<typename templates::Storage<T, 4>::Type, 4>(v); }
+template<typename T> requires Arithmetic<T> inline decltype(zero<typename templates::Storage<T, 4>::Type>()) zero4() { return zero<typename templates::Storage<T, 4>::Type>(); }
+template<typename T> requires Arithmetic<T> inline decltype(set<typename templates::Storage<T, 4>::Type, 1>(T())) set1(T s) { return set<typename templates::Storage<T, 4>::Type, 1>(s); }
+template<typename T> requires Arithmetic<T> inline decltype(load<typename templates::Storage<T, 4>::Type, 1>((const T*)nullptr)) load1(const T* v) { return load<typename templates::Storage<T, 4>::Type, 1>(v); }
+template<typename T> requires Arithmetic<T> inline decltype(set<typename templates::Storage<T, 4>::Type, 2>(T())) set2(T s) { return set<typename templates::Storage<T, 4>::Type, 2>(s); }
+template<typename T> requires Arithmetic<T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T())) set2(T x, T y) { return set<typename templates::Storage<T, 4>::Type>(x, y); }
+template<typename T> requires (!Arithmetic<T>) inline decltype(set<T>(T(), T())) set2(T x, T y) { return set<T>(x, y); }
+template<typename T> requires Arithmetic<T> inline decltype(load<typename templates::Storage<T, 4>::Type, 2>((const T*)nullptr)) load2(const T* v) { return load<typename templates::Storage<T, 4>::Type, 2>(v); }
+template<typename T> requires Arithmetic<T> inline decltype(set<typename templates::Storage<T, 4>::Type, 3>(T())) set3(T s) { return set<typename templates::Storage<T, 4>::Type, 3>(s); }
+template<typename T> requires Arithmetic<T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T(), T())) set3(T x, T y, T z) { return set<typename templates::Storage<T, 4>::Type>(x, y, z); }
+template<typename T> requires (!Arithmetic<T>) inline decltype(set<T>(T(), T(), T())) set3(T x, T y, T z) { return set<T>(x, y, z); }
+template<typename T> requires Arithmetic<T> inline decltype(load<typename templates::Storage<T, 4>::Type, 3>((const T*)nullptr)) load3(const T* v) { return load<typename templates::Storage<T, 4>::Type, 3>(v); }
+template<typename T> requires Arithmetic<T> inline decltype(set<typename templates::Storage<T, 4>::Type, 4>(T())) set4(T s) { return set<typename templates::Storage<T, 4>::Type, 4>(s); }
+template<typename T> requires Arithmetic<T> inline decltype(set<typename templates::Storage<T, 4>::Type>(T(), T(), T(), T())) set4(T x, T y, T z, T w) { return set<typename templates::Storage<T, 4>::Type>(x, y, z, w); }
+template<typename T> requires (!Arithmetic<T>) inline decltype(set<T>(T(), T(), T(), T())) set4(T x, T y, T z, T w) { return set<T>(x, y, z, w); }
+template<typename T> requires Arithmetic<T> inline decltype(load<typename templates::Storage<T, 4>::Type, 4>((const T*)nullptr)) load4(const T* v) { return load<typename templates::Storage<T, 4>::Type, 4>(v); }
 #endif
 
 #if SIMD_HAS_INT4 || SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE2 || SIMD_HAS_DOUBLE4
