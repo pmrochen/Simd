@@ -329,6 +329,15 @@ inline T set(__m128 x, __m128 y)
 	return _mm_unpacklo_ps(x, y);
 }
 
+#if (SIMD_SSE >= 2)
+template<typename T>
+	requires std::is_same_v<T, __m128i>
+inline T set(__m128i x, __m128i y)
+{
+	return _mm_unpacklo_epi32(x, y);
+}
+#endif
+
 template<typename T>
 	requires std::is_same_v<T, __m128>
 inline T set(float x, float y, float z)
@@ -342,6 +351,15 @@ inline T set(__m128 x, __m128 y, __m128 z)
 {
 	return _mm_movelh_ps(_mm_unpacklo_ps(x, y), z);
 }
+
+#if (SIMD_SSE >= 2)
+template<typename T>
+	requires std::is_same_v<T, __m128i>
+inline T set(__m128i x, __m128i y, __m128i z)
+{
+	return _mm_unpacklo_epi64(_mm_unpacklo_epi32(x, y), z);
+}
+#endif
 
 template<typename T>
 	requires std::is_same_v<T, __m128>
@@ -361,6 +379,15 @@ inline T set(__m128 x, __m128 y, __m128 z, __m128 w)
 {
 	return _mm_movelh_ps(_mm_unpacklo_ps(x, y), _mm_unpacklo_ps(z, w));
 }
+
+#if (SIMD_SSE >= 2)
+template<typename T>
+	requires std::is_same_v<T, __m128i>
+inline T set(__m128i x, __m128i y, __m128i z, __m128i w)
+{
+	return _mm_unpacklo_epi64(_mm_unpacklo_epi32(x, y), _mm_unpacklo_epi32(z, w));
+}
+#endif
 
 template<typename T, int N>
 	requires (std::is_same_v<T, __m128> && (N >= 1) && (N <= 4))
