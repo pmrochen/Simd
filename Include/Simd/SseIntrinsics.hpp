@@ -531,30 +531,21 @@ inline std::tuple<__m128, __m128> unpack(__m128 m)
 // 		_mm_and_ps(_mm_shuffle_ps(t3, t3, _MM_SHUFFLE(3, 3, 2, 1)), mask3) }; 	// 0, m32, m31, m30
 // }
 
-inline std::tuple<__m128, __m128> transpose(__m128 row0, __m128 row1)
+inline std::tuple<__m128, __m128> transpose(__m128 row0, __m128 row1) // Preserve the third and fourth columns
 {
-	__m128 t = _mm_unpacklo_ps(row0, row1);		// Preserve the third and fourth columns
+	__m128 t = _mm_unpacklo_ps(row0, row1);
 	return { _mm_movelh_ps(t, _mm_shuffle_ps(t, row0, _MM_SHUFFLE(3, 2, 1, 0))), _mm_movehl_ps(row1, t) };
-
-	// __m128 t = _mm_unpacklo_ps(row0, row1);	// Zero out the third and fourth columns
-	// const __m128 zero = _mm_setzero_ps();
-	// return { _mm_movelh_ps(t, zero), _mm_movehl_ps(zero, t) };
 }
 
-inline std::tuple<__m128, __m128, __m128> transpose(__m128 row0, __m128 row1, __m128 row2)
+inline std::tuple<__m128, __m128, __m128> transpose(__m128 row0, __m128 row1, __m128 row2) // Preserve the fourth column
 {
-	__m128 t0 = _mm_unpacklo_ps(row0, row1);	// Preserve the fourth column
-	__m128 t1 = _mm_unpackhi_ps(row0, row1);
-	__m128 t2 = _mm_shuffle_ps(row0, t1, _MM_SHUFFLE(3, 2, 1, 0));
-	return { _mm_shuffle_ps(t0, t2, _MM_SHUFFLE(2, 0, 1, 0)),
-		_mm_shuffle_ps(t0, t2, _MM_SHUFFLE(3, 1, 3, 2)),
-		_mm_shuffle_ps(t1, row2, _MM_SHUFFLE(3, 2, 1, 0)) };
-
-	// __m128 t0 = _mm_unpacklo_ps(row0, row1);	// Copy the third column to the fourth
-	// __m128 t1 = _mm_unpackhi_ps(row0, row1);
-	// return { _mm_shuffle_ps(t0, row2, _MM_SHUFFLE(0, 0, 1, 0)),
-	// 	_mm_shuffle_ps(t0, row2, _MM_SHUFFLE(1, 1, 3, 2)),
-	// 	_mm_shuffle_ps(t1, row2, _MM_SHUFFLE(2, 2, 1, 0)) };
+	__m128 t0 = _mm_unpacklo_ps(row0, row1);	// a0 b0 a1 b1
+	__m128 t1 = _mm_unpackhi_ps(row0, row1);	// a2 b2 a3 b3
+	__m128 u0 = _mm_shuffle_ps(row2, row0, _MM_SHUFFLE(3, 3, 0, 0));	// c0 c0 a3 a3
+	__m128 u1 = _mm_shuffle_ps(row2, row1, _MM_SHUFFLE(3, 3, 1, 1));	// c1 c1 b3 b3
+	return { _mm_shuffle_ps(t0, u0, _MM_SHUFFLE(2, 0, 1, 0)),	// a0 b0 c0 a3
+		_mm_shuffle_ps(t0, u1, _MM_SHUFFLE(2, 0, 3, 2)),		// a1 b1 c1 b3
+		_mm_shuffle_ps(t1, row2, _MM_SHUFFLE(3, 2, 1, 0)) };	// a2 b2 c2 c3
 }
 
 inline std::tuple<__m128, __m128, __m128, __m128> transpose(__m128 row0, __m128 row1, __m128 row2, __m128 row3)
