@@ -417,10 +417,10 @@ inline T load(const double* v)
 
 #if (SIMD_SSE >= 2)
 template<typename T, int N>
-	requires (std::is_same_v<T, __m128i> && (N == 4))
+	requires (std::is_same_v<T, __m128i> && (N == 4)/*(N >= 1) && (N <= 4)*/) // #TODO
 inline T load(const int* v)
 {
-	return _mm_loadu_si128((const __m128i*)v);
+	return _mm_loadu_si128(reinterpret_cast<const __m128i*>(v));
 }
 #endif
 
@@ -445,6 +445,15 @@ inline void store(__m128 u, float* v)
 			_mm_store_ss(&v[2], _mm_unpackhi_ps(u, u));
 	} 
 }
+
+#if (SIMD_SSE >= 2)
+template<int N>
+	requires ((N == 4)/*(N >= 1) && (N <= 4)*/) // #TODO
+inline void store(__m128i u, int* v) 
+{
+	_mm_storeu_si128(reinterpret_cast<__m128i*>(v), u); 
+}
+#endif
 
 #if (SIMD_SSE >= 2)
 template<int N>
@@ -922,6 +931,7 @@ inline __m128 abs(__m128 v)
 
 inline __m128 normalize(__m128 v) // -0 -> +0
 {
+	//return _mm_andnot_ps(_mm_cmpeq_ps(v, _mm_setzero_ps()), v);
 	return _mm_add_ps(v, _mm_setzero_ps());
 }
 
@@ -1170,59 +1180,16 @@ inline __m128 isInf(__m128 v)
 #endif
 }
 
-#if (SIMD_SSE >= 2)
-// Hashes all 128 bits of the vector; vectors with identical bits hash to the same value.
-inline std::size_t hash(__m128i v)
-{
-	std::uint64_t h[2];
-	_mm_storeu_si128(reinterpret_cast<__m128i*>(h), v);
-
-	// Chain both halves through a bijective 64-bit finalizer (SplitMix64), so that the result depends on the position
-	// of each lane (a plain XOR of the lanes cancels out equal lanes and ignores their order).
-	auto mix = [](std::uint64_t x)
-	{
-		x ^= x >> 30;
-		x *= 0xBF58476D1CE4E5B9ull;
-		x ^= x >> 27;
-		x *= 0x94D049BB133111EBull;
-		x ^= x >> 31;
-		return x;
-	};
-
-	const std::uint64_t x = mix(mix(h[0] + 0x9E3779B97F4A7C15ull) ^ h[1]);
-	if constexpr (sizeof(std::size_t) >= sizeof(std::uint64_t))
-		return static_cast<std::size_t>(x);
-	else
-		return static_cast<std::size_t>(x ^ (x >> 32));
-}
-#endif
-
-// Consistent with equal(): lanes comparing equal hash equally, i.e. negative zero is hashed as positive zero.
-inline std::size_t hash(__m128 v)
-{
-	v = _mm_andnot_ps(_mm_cmpeq_ps(v, _mm_setzero_ps()), v);
-
-	std::uint64_t h[2];
-	_mm_storeu_ps(reinterpret_cast<float*>(h), v);
-
-	// Chain both halves through a bijective 64-bit finalizer (SplitMix64), so that the result depends on the position
-	// of each lane (a plain XOR of the lanes cancels out equal lanes and ignores their order).
-	auto mix = [](std::uint64_t x)
-	{
-		x ^= x >> 30;
-		x *= 0xBF58476D1CE4E5B9ull;
-		x ^= x >> 27;
-		x *= 0x94D049BB133111EBull;
-		x ^= x >> 31;
-		return x;
-	};
-
-	const std::uint64_t x = mix(mix(h[0] + 0x9E3779B97F4A7C15ull) ^ h[1]);
-	if constexpr (sizeof(std::size_t) >= sizeof(std::uint64_t))
-		return static_cast<std::size_t>(x);
-	else
-		return static_cast<std::size_t>(x ^ (x >> 32));
-}
+// #if (SIMD_SSE >= 2)
+// inline std::size_t hash(__m128i v)
+// {
+// 	__m128i y = _mm_shuffle_epi32(v, _MM_SHUFFLE(2, 3, 0, 1));
+// 	__m128i x = _mm_xor_si128(v, y);
+// 	y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
+// 	x = _mm_xor_si128(x, y);
+// 	return static_cast<std::size_t>(_mm_cvtsi128_si64(x) ^ _mm_extract_epi64(x, 1));
+// }
+// #endif
 
 } // namespace simd::sse
 
