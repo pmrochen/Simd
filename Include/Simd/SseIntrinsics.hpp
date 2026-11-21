@@ -929,11 +929,11 @@ inline __m128 abs(__m128 v)
 	return _mm_andnot_ps(detail::SIGN4, v);
 }
 
-inline __m128 normalize(__m128 v) // -0 -> +0
-{
-	//return _mm_andnot_ps(_mm_cmpeq_ps(v, _mm_setzero_ps()), v);
-	return _mm_add_ps(v, _mm_setzero_ps());
-}
+// inline __m128 normalizeZero(__m128 v) // -0 -> +0
+// {
+// 	//return _mm_andnot_ps(_mm_cmpeq_ps(v, _mm_setzero_ps()), v);
+// 	return _mm_add_ps(v, _mm_setzero_ps());
+// }
 
 inline __m128 add(__m128 v1, __m128 v2)
 {

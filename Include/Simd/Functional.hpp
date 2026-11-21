@@ -42,7 +42,7 @@ struct hash<::simd::float4>
 	size_t operator()(const ::simd::float4& v) const noexcept
 	{
 		std::uint64_t h[2];
-		::simd::store<4>(::simd::normalize(v), reinterpret_cast<float*>(h));
+		::simd::store<4>(::simd::normalizeZero(v), reinterpret_cast<float*>(h));
 
 		// Chain both halves through a bijective 64-bit finalizer (SplitMix64), so that the result depends on the position
 		// of each lane (a plain XOR of the lanes cancels out equal lanes and ignores their order).
