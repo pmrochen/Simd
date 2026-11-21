@@ -20,7 +20,7 @@ template<typename T, int N>
 struct alignas(sizeof(T)*N) Tuple
 {
 	using ComponentType = T;
-	using DataType = typename Storage<T, N>::Type;
+	using DataType = typename scalar::Storage<T, N>::Type;
 	
 	static constexpr int NUM_COMPONENTS = N;
 	static constexpr int ALIGNMENT = sizeof(T)*N;
