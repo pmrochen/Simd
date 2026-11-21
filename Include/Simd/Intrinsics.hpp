@@ -75,9 +75,8 @@ template<typename T>
 concept Integral = ( 
 #if SIMD_HAS_INT4
 	std::same_as<T, int4> ||
-#else
-	false
 #endif
+	false
 );
 
 template<typename T>
