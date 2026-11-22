@@ -164,14 +164,14 @@ template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(T s, const Tuple<T, N> v) noexcept 
 { 
-	return Tuple<T, N>(mul(set<DataType, N>(s), v));
+	return Tuple<T, N>(mul(set<typename Tuple<T, N>::DataType, N>(s), v));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator*(const Tuple<T, N> v, T s) noexcept 
 { 
-	return Tuple<T, N>(mul(v, set<DataType, N>(s)));
+	return Tuple<T, N>(mul(v, set<typename Tuple<T, N>::DataType, N>(s)));
 }
 
 template<typename T, int N>
@@ -185,19 +185,19 @@ template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(T s, const Tuple<T, N> v) noexcept 
 { 
-	return Tuple<T, N>(div(set<DataType, N>(s), v));
+	return Tuple<T, N>(div(set<typename Tuple<T, N>::DataType, N>(s), v));
 }
 
 template<typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
 inline Tuple<T, N> operator/(const Tuple<T, N> v, T s) noexcept 
 { 
-	return Tuple<T, N>(div(v, set<DataType, N>(s)));
+	return Tuple<T, N>(div(v, set<typename Tuple<T, N>::DataType, N>(s)));
 }
 
-//template<std::size_t I, typename T, int N>
+// template<std::size_t I, typename T, int N>
 //	requires (std::floating_point<T> || std::integral<T>)
-//inline T& get(Tuple<T, N>& v) noexcept; // #TODO
+// inline T& get(Tuple<T, N>& v) noexcept; // #TODO
 
 template<std::size_t I, typename T, int N>
 	requires (std::floating_point<T> || std::integral<T>)
