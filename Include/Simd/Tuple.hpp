@@ -11,6 +11,7 @@
 #include <tuple>
 #include <cstddef>
 #include "Intrinsics.hpp"
+#include "Functional.hpp"
 
 namespace simd {
 namespace templates {
@@ -253,7 +254,8 @@ struct hash<::simd::templates::Tuple<T, N>>
 {
 	size_t operator()(const ::simd::templates::Tuple<T, N>& v) const noexcept
 	{
-		return ::simd::hash(v.value);
+		//return ::simd::hash(v.value);
+		return std::hash<typename ::simd::templates::Tuple<T, N>::DataType>()(v.value);
 	}
 };
 
