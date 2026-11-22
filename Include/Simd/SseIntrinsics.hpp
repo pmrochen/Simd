@@ -78,20 +78,6 @@ inline __m128 operator/(const __m128 v, float s) { return _mm_div_ps(v, _mm_set_
 #endif
 
 namespace simd::sse {
-namespace bitops {
-
-#if defined(__clang__) || defined(__GNUC__)
-inline unsigned int ctz(unsigned int x) { return __builtin_ctz(x); }
-#elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
-inline unsigned int ctz(unsigned int x) { return _tzcnt_u32(x); }
-#elif defined(_MSC_VER) && defined(_M_ARM64)
-inline unsigned int ctz(unsigned int x) { return __popcnt((x & -x) - 1); }
-#else
-inline unsigned int ctz(unsigned int x) { return std::countr_zero(x); }
-#endif
-
-} // namespace bitops
-
 namespace detail {
 
 template<typename T, typename U>
@@ -129,6 +115,16 @@ const UInt32M128 COMPONENT_MASKS[] = { { { { 0xFFFFFFFF, 0x00000000, 0x00000000,
 	{ { { 0x00000000, 0xFFFFFFFF, 0x00000000, 0x00000000 } } },
 	{ { { 0x00000000, 0x00000000, 0xFFFFFFFF, 0x00000000 } } },
 	{ { { 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF } } } };
+
+#if defined(__clang__) || defined(__GNUC__)
+inline unsigned int ctz(unsigned int x) { return __builtin_ctz(x); }
+#elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
+inline unsigned int ctz(unsigned int x) { return _tzcnt_u32(x); }
+#elif defined(_MSC_VER) && defined(_M_ARM64)
+inline unsigned int ctz(unsigned int x) { return __popcnt((x & -x) - 1); }
+#else
+inline unsigned int ctz(unsigned int x) { return std::countr_zero(x); }
+#endif
 
 } // namespace detail 
 
@@ -630,7 +626,7 @@ inline bool any(__m128i b)
 
 inline int asIndex(__m128 b)
 {
-	return /*std::countr_zero*/bitops::ctz(_mm_movemask_ps(b));
+	return /*std::countr_zero*/detail::ctz(_mm_movemask_ps(b));
 }
 
 #if (SIMD_SSE >= 2)
