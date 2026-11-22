@@ -142,37 +142,6 @@ constexpr int Y = 1;
 constexpr int Z = 2;
 constexpr int W = 3;
 
-template<bool A, bool B, bool C, bool D>
-struct Mask 
-{
-	static constexpr bool X = A;
-	static constexpr bool Y = B;
-	static constexpr bool Z = C;
-	static constexpr bool W = D;
-
-	static constexpr int X_MASK = -(int)A;
-	static constexpr int Y_MASK = -(int)B;
-	static constexpr int Z_MASK = -(int)C;
-	static constexpr int W_MASK = -(int)D;
-
-	static constexpr int X_SIGN = (int)A << 31;
-	static constexpr int Y_SIGN = (int)B << 31;
-	static constexpr int Z_SIGN = (int)C << 31;
-	static constexpr int W_SIGN = (int)D << 31;
-};
-
-struct XY : public Mask<true, true, false, false> {};
-struct XZ : public Mask<true, false, true, false> {};
-struct YZ : public Mask<false, true, true, false> {};
-struct XYZ : public Mask<true, true, true, false> {};
-struct XW : public Mask<true, false, false, true> {};
-struct YW : public Mask<false, true, false, true> {};
-struct XYW : public Mask<true, true, false, true> {};
-struct ZW : public Mask<false, false, true, true> {};
-struct XZW : public Mask<true, false, true, true> {};
-struct YZW : public Mask<false, true, true, true> {};
-struct XYZW : public Mask<true, true, true, true> {};
-
 template<typename T>
 	requires std::is_same_v<T, __m128>
 inline T zero()
@@ -741,12 +710,6 @@ inline __m128 neg(__m128 v)
 		return _mm_xor_ps(v, detail::SIGN4/*_mm_castsi128_ps(_mm_set1_epi32(0x80000000))*/);
 }
 
-template<typename M>
-inline __m128 neg(__m128 v)
-{
-	return _mm_xor_ps(v, bits<__m128, M::X_SIGN, M::Y_SIGN, M::Z_SIGN, M::W_SIGN>()/*_mm_castsi128_ps(_mm_setr_epi32(M::X_SIGN, M::Y_SIGN, M::Z_SIGN, M::W_SIGN))*/);
-}
-
 inline __m128 abs(__m128 v)
 {
 	return _mm_andnot_ps(detail::SIGN4, v);
@@ -838,9 +801,7 @@ inline __m128 rcpSqrtApprox(__m128 s)
 	if (!(_mm_movemask_ps(_mm_cmpeq_ss(_mm_mul_ss(b, zero), zero)) & 1)) // NaN or infinity
 #endif
 		return b; // preserve NaN/infinity result
-	// static const __m128 half = _mm_set_ps1(0.5f);
-	// static const __m128 three = _mm_set_ps1(3.f);
-	return _mm_mul_ss(_mm_mul_ss(/*half*/detail::HALF4, b), _mm_sub_ss(/*three*/detail::THREE4, _mm_mul_ss(_mm_mul_ss(s, b), b)));
+	return _mm_mul_ss(_mm_mul_ss(detail::HALF4, b), _mm_sub_ss(detail::THREE4, _mm_mul_ss(_mm_mul_ss(s, b), b)));
 }
 
 template<int N = 4>
