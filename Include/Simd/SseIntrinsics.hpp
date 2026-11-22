@@ -111,6 +111,8 @@ const UInt32M128 ONE1 = { { { 0x3F800000, 0x00000000, 0x00000000, 0x00000000 } }
 const UInt32M128 ONE4 = { { { 0x3F800000, 0x3F800000, 0x3F800000, 0x3F800000 } } };
 const UInt32M128 HALF4 = { { { 0x3F000000, 0x3F000000, 0x3F000000, 0x3F000000 } } };
 const UInt32M128 THREE4 = { { { 0x40400000, 0x40400000, 0x40400000, 0x40400000 } } };
+const UInt32M128 TWO_POW_23_4 = { { { 0x4B000000, 0x4B000000, 0x4B000000, 0x4B000000 } } };
+const UInt32M128 INF4 = { { { 0x7F800000, 0x7F800000, 0x7F800000, 0x7F800000 } } };
 const UInt32M128 ZERO3_ONE1 = { { { 0x00000000, 0x00000000, 0x00000000, 0x3F800000 } } };
 const UInt32M128 SUB_ADD_SIGN4 = { { { 0x80000000, 0x00000000, 0x80000000, 0x00000000 } } };
 const UInt32M128 SIGN1 = { { { 0x80000000, 0x00000000, 0x00000000, 0x00000000 } } };
@@ -965,9 +967,13 @@ inline __m128 floor(__m128 v)
 #if (SIMD_SSE >= 4)
 	return _mm_floor_ps(v); // SSE 4.1
 #else
-	// static const __m128 one = _mm_set_ps1(1.0f);
-	__m128 t = _mm_cvtepi32_ps(_mm_cvttps_epi32(v));
-	return _mm_sub_ps(t, _mm_and_ps(_mm_cmplt_ps(v, t), /*one*/detail::ONE4));
+	// Round to the nearest integer as in round(), then step down by one where that rounded up
+	__m128 a = _mm_andnot_ps(detail::SIGN4, v);
+	__m128 r = _mm_sub_ps(_mm_add_ps(a, detail::TWO_POW_23_4), detail::TWO_POW_23_4);
+	r = _mm_or_ps(r, _mm_and_ps(v, detail::SIGN4));
+	__m128 m = _mm_cmplt_ps(a, detail::TWO_POW_23_4);
+	__m128 t = _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, v));
+	return _mm_sub_ps(t, _mm_and_ps(_mm_cmplt_ps(v, t), detail::ONE4));
 #endif
 }
 
@@ -976,29 +982,24 @@ inline __m128 round(__m128 v)
 #if (SIMD_SSE >= 4)
 	return _mm_round_ps(v, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC); // SSE 4.1
 #else
-	#error // #TODO
+	// Adding and subtracting 2^23 rounds |v| < 2^23 to the nearest integer (ties to even, assuming the default MXCSR
+	// rounding mode); |v| >= 2^23, infinities and NaNs are already integral or must pass through unchanged
+	__m128 a = _mm_andnot_ps(detail::SIGN4, v);
+	__m128 r = _mm_sub_ps(_mm_add_ps(a, detail::TWO_POW_23_4), detail::TWO_POW_23_4);
+	r = _mm_or_ps(r, _mm_and_ps(v, detail::SIGN4)); // restore sign (also gives -0.0 for values in [-0.5, -0.0])
+	__m128 m = _mm_cmplt_ps(a, detail::TWO_POW_23_4);
+	return _mm_or_ps(_mm_and_ps(m, r), _mm_andnot_ps(m, v));
 #endif
 }
 
 inline __m128 isFinite(__m128 v)
 {
-#if (SIMD_SSE >= 2)
-	__m128i t = _mm_sll_epi32(_mm_castps_si128(v), _mm_cvtsi32_si128(1)); // SSE 2
-	const __m128i m = _mm_set1_epi32(0xFF000000);
-	return _mm_castsi128_ps(_mm_xor_si128(_mm_cmpeq_epi32(_mm_and_si128(t, m), m), _mm_set1_epi32(-1)));
-#else
-	#error // #TODO
-#endif
+	return _mm_cmplt_ps(_mm_andnot_ps(detail::SIGN4, v), detail::INF4); // ordered comparison, false for NaN
 }
 
 inline __m128 isInf(__m128 v)
 {
-#if (SIMD_SSE >= 2)
-	__m128i t = _mm_sll_epi32(_mm_castps_si128(v), _mm_cvtsi32_si128(1)); // SSE 2
-    return _mm_castsi128_ps(_mm_cmpeq_epi32(t, _mm_set1_epi32(0xFF000000)));
-#else
-	#error // #TODO
-#endif
+	return _mm_cmpeq_ps(_mm_andnot_ps(detail::SIGN4, v), detail::INF4);
 }
 
 // #if (SIMD_SSE >= 2)
