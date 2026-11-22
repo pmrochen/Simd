@@ -225,7 +225,6 @@ template<typename T, typename U> inline decltype(div<4>(T(), U())) div4(T u, U v
 #if SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE2 || SIMD_HAS_DOUBLE4
 template<typename T> inline decltype(sqrt<1>(T())) sqrt1(T v) { return sqrt<1>(v); }
 template<typename T> inline decltype(rcpSqrtApprox<1>(T())) rcpSqrtApprox1(T v) { return rcpSqrtApprox<1>(v); }
-template<typename T> inline decltype(add(T(), zero<T>())) normalizeZero(T u) { return add(u, zero<T>()); }
 #endif
 
 #if SIMD_HAS_INT4 || SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE2 || SIMD_HAS_DOUBLE4
