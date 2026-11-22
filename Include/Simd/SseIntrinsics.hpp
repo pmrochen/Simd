@@ -94,18 +94,20 @@ inline unsigned int ctz(unsigned int x) { return std::countr_zero(x); }
 
 namespace detail {
 
-struct alignas(16) UInt32M128
+template<typename T, typename U>
+struct alignas(16) Union
 {
-	inline operator __m128() const { return xmm; }
-	// inline operator __m128i() const { return _mm_castps_si128(xmm); }
-	// inline operator __m128d() const { return _mm_castps_pd(xmm); }
+	operator U() const { return v; }
 
 	union 
-    { 
-        std::uint32_t u[4]; 
-        __m128 xmm; 
-    };
+	{ 
+		T u[sizeof(U)/sizeof(T)]; 
+		U v; 
+	};
 };
+
+using FloatM128 = Union<float, __m128>;
+using UInt32M128 = Union<std::uint32_t, __m128>;
 
 const UInt32M128 ONE1 = { { { 0x3F800000, 0x00000000, 0x00000000, 0x00000000 } } };
 const UInt32M128 ONE4 = { { { 0x3F800000, 0x3F800000, 0x3F800000, 0x3F800000 } } };
@@ -156,12 +158,8 @@ inline T constant()
 	if constexpr (S == 0)
 		return _mm_setzero_ps();
 	
-	static const union alignas(16)
-	{
-		float f[4];
-		__m128 xmm;
-	} u = { { (float)S, (float)S, (float)S, (float)S } };
-	return u.xmm;
+	static const detail::Union<float, T> u = { { { (float)S, (float)S, (float)S, (float)S } } };
+	return u.v;
 }
 
 template<typename T, int X, int Y, int Z, int W>
@@ -171,12 +169,8 @@ inline T constant()
 	if constexpr ((X == 0) && (Y == 0) && (Z == 0) && (W == 0))
 		return _mm_setzero_ps();
 	
-	static const union alignas(16)
-	{
-		float f[4];
-		__m128 xmm;
-	} u = { { (float)X, (float)Y, (float)Z, (float)W } };
-	return u.xmm;
+	static const detail::Union<float, T> u = { { { (float)X, (float)Y, (float)Z, (float)W } } };
+	return u.v;
 }
 
 template<typename T, int S>
@@ -197,12 +191,8 @@ inline T bits()
 			return _mm_setzero_ps();
 	}
 
-	static const union alignas(16)
-	{
-		int i[4];
-		T xmm;
-	} u = { { S, S, S, S } };
-	return u.xmm;
+	static const detail::Union<std::int32_t, T> u = { { { S, S, S, S } } };
+	return u.v;
 }
 
 template<typename T, int X, int Y, int Z, int W>
@@ -223,12 +213,8 @@ inline T bits()
 			return _mm_setzero_ps();
 	}
 
-	static const union alignas(16)
-	{
-		int i[4];
-		T xmm;
-	} u = { { X, Y, Z, W } };
-	return u.xmm;
+	static const detail::Union<std::int32_t, T> u = { { { X, Y, Z, W } } };
+	return u.v;
 }
 
 template<typename T, int N /*= 1*/>
