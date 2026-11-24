@@ -112,11 +112,16 @@ struct Storage<int, 4> { using Type = int4; };
 
 } // namespace scalar
 
+constexpr int X = 0;
+constexpr int Y = 1;
+constexpr int Z = 2;
+constexpr int W = 3;
+
 #if SIMD_HAS_DOUBLE2
 template<typename T> inline decltype(broadcast<X>(T())) xx(T v) { return broadcast<X>(v); }
-template<typename T> inline decltype(broadcast<Y>(T())) yy(T v) { return broadcast<Y>(v); }
 template<typename T> inline decltype(swizzle<X, Y>(T())) xy(T v) { return swizzle<X, Y>(v); }
 template<typename T> inline decltype(swizzle<Y, X>(T())) yx(T v) { return swizzle<Y, X>(v); }
+template<typename T> inline decltype(broadcast<Y>(T())) yy(T v) { return broadcast<Y>(v); }
 #endif
 
 #if SIMD_HAS_INT4 || SIMD_HAS_FLOAT4 || SIMD_HAS_DOUBLE4

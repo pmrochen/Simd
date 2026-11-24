@@ -135,11 +135,6 @@ using double2 = __m128d;
 using int4 = __m128i;
 #endif
 
-constexpr int X = 0;
-constexpr int Y = 1;
-constexpr int Z = 2;
-constexpr int W = 3;
-
 template<typename T>
 	requires std::is_same_v<T, __m128>
 inline T zero()

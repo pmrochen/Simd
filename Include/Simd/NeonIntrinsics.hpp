@@ -36,11 +36,6 @@ const float32x4_t HALF4 = { 0.5f, 0.5f, 0.5f, 0.5f };
 
 using float4 = float32x4_t;
 
-constexpr int X = 0;
-constexpr int Y = 1;
-constexpr int Z = 2;
-constexpr int W = 3;
-
 // #TODO
 
 template<typename T>

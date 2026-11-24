@@ -44,11 +44,6 @@ namespace simd::avx {
 
 using double4 = __m256d;
 
-using simd::sse::X;
-using simd::sse::Y;
-using simd::sse::Z;
-using simd::sse::W;
-
 // #TODO
 
 template<typename T, int N /*= 1*/>

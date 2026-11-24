@@ -21,11 +21,6 @@ namespace simd::wasm {
 
 using float4 = v128_t;
 
-constexpr int X = 0;
-constexpr int Y = 1;
-constexpr int Z = 2;
-constexpr int W = 3;
-
 // #TODO
 
 template<typename T>
